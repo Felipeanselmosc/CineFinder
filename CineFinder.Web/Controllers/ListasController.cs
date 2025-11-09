@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using CineFinder.Application.Interfaces;
 using CineFinder.ViewModels;
-using CineFinder.Application.DTOs;
+using CineFinder.Application.DTOs.Filme;
+using CineFinder.Application.DTOs.Lista;
+using CineFinder.Application.DTOs.Usuario;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CineFinder.Web.Controllers
 {
@@ -24,51 +29,69 @@ namespace CineFinder.Web.Controllers
         // GET: Listas
         public async Task<IActionResult> Index()
         {
-            var listasDto = await _listaService.ObterTodasAsync();
-            var listas = listasDto.Select(l => new ListaViewModel
+            try
             {
-                Id = l.Id,
-                Nome = l.Nome,
-                Descricao = l.Descricao,
-                IsPublica = l.IsPublica,
-                DataCriacao = l.DataCriacao,
-                NomeUsuario = l.NomeUsuario,
-                TotalFilmes = l.TotalFilmes
-            }).ToList();
+                // Usar GetPublicasAsync já que não temos GetAllAsync
+                var listasDto = await _listaService.GetPublicasAsync();
+                var listas = listasDto.Select(l => new ListaViewModel
+                {
+                    Id = l.Id,
+                    Nome = l.Nome,
+                    Descricao = l.Descricao,
+                    IsPublica = l.IsPublica,
+                    DataCriacao = l.DataCriacao,
+                    NomeUsuario = l.Usuario?.Nome ?? "Usuário",
+                    TotalFilmes = l.TotalFilmes
+                }).ToList();
 
-            return View(listas);
+                return View(listas);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar listas: {ex.Message}";
+                return View(new System.Collections.Generic.List<ListaViewModel>());
+            }
         }
 
         // GET: Listas/Detalhes/5
         public async Task<IActionResult> Detalhes(Guid id)
         {
-            var listaDto = await _listaService.ObterPorIdAsync(id);
-            if (listaDto == null)
+            try
+            {
+                var listaDto = await _listaService.GetDetalhadaAsync(id);
+
+                var lista = new ListaViewModel
+                {
+                    Id = listaDto.Id,
+                    Nome = listaDto.Nome,
+                    Descricao = listaDto.Descricao,
+                    IsPublica = listaDto.IsPublica,
+                    DataCriacao = listaDto.DataCriacao,
+                    NomeUsuario = listaDto.Usuario?.Nome ?? "Usuário",
+                    TotalFilmes = listaDto.TotalFilmes,
+                    Filmes = listaDto.Filmes?.Select(f => new FilmeViewModel
+                    {
+                        Id = f.Id,
+                        Titulo = f.Titulo,
+                        Descricao = f.Descricao ?? "",
+                        PosterUrl = f.PosterUrl,
+                        DataLancamento = f.DataLancamento,
+                        NotaMedia = f.NotaMedia,
+                        Duracao = f.Duracao
+                    }).ToList() ?? new System.Collections.Generic.List<FilmeViewModel>()
+                };
+
+                return View(lista);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var lista = new ListaViewModel
+            catch (Exception ex)
             {
-                Id = listaDto.Id,
-                Nome = listaDto.Nome,
-                Descricao = listaDto.Descricao,
-                IsPublica = listaDto.IsPublica,
-                DataCriacao = listaDto.DataCriacao,
-                NomeUsuario = listaDto.NomeUsuario,
-                TotalFilmes = listaDto.TotalFilmes,
-                Filmes = listaDto.Filmes.Select(f => new FilmeViewModel
-                {
-                    Id = f.Id,
-                    Titulo = f.Titulo,
-                    Descricao = f.Descricao,
-                    PosterUrl = f.PosterUrl,
-                    Diretor = f.Diretor,
-                    DataLancamento = f.DataLancamento
-                }).ToList()
-            };
-
-            return View(lista);
+                TempData["ErrorMessage"] = $"Erro ao carregar lista: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Listas/Criar
@@ -84,25 +107,32 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // TODO: Obter usu�rio logado. Por enquanto, usando um ID fixo para demonstra��o
-                var usuarioId = Guid.NewGuid(); // Substituir pela l�gica de autentica��o real
-
-                var listaDto = new ListaDto
+                try
                 {
-                    Nome = model.Nome,
-                    Descricao = model.Descricao,
-                    IsPublica = model.IsPublica,
-                    UsuarioId = usuarioId
-                };
+                    // TODO: Obter usuário logado. Por enquanto, usando um ID fixo para demonstração
+                    var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
 
-                var resultado = await _listaService.AdicionarAsync(listaDto);
-                if (resultado != null)
-                {
-                    TempData["Sucesso"] = "Lista criada com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var listaDto = new CreateListaDto
+                    {
+                        Nome = model.Nome,
+                        Descricao = model.Descricao,
+                        IsPublica = model.IsPublica,
+                        UsuarioId = usuarioId
+                    };
+
+                    var resultado = await _listaService.CreateAsync(usuarioId, listaDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Lista criada com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao criar a lista.");
                 }
-
-                ModelState.AddModelError("", "Erro ao criar a lista.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao criar a lista: {ex.Message}");
+                }
             }
 
             return View(model);
@@ -111,21 +141,29 @@ namespace CineFinder.Web.Controllers
         // GET: Listas/Editar/5
         public async Task<IActionResult> Editar(Guid id)
         {
-            var listaDto = await _listaService.ObterPorIdAsync(id);
-            if (listaDto == null)
+            try
+            {
+                var listaDto = await _listaService.GetByIdAsync(id);
+
+                var model = new ListaEditViewModel
+                {
+                    Id = listaDto.Id,
+                    Nome = listaDto.Nome,
+                    Descricao = listaDto.Descricao,
+                    IsPublica = listaDto.IsPublica
+                };
+
+                return View(model);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var model = new ListaEditViewModel
+            catch (Exception ex)
             {
-                Id = listaDto.Id,
-                Nome = listaDto.Nome,
-                Descricao = listaDto.Descricao,
-                IsPublica = listaDto.IsPublica
-            };
-
-            return View(model);
+                TempData["ErrorMessage"] = $"Erro ao carregar lista: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Listas/Editar/5
@@ -135,22 +173,32 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var listaDto = new ListaDto
+                try
                 {
-                    Id = id,
-                    Nome = model.Nome,
-                    Descricao = model.Descricao,
-                    IsPublica = model.IsPublica
-                };
+                    // TODO: Obter usuário logado
+                    var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
 
-                var resultado = await _listaService.AtualizarAsync(listaDto);
-                if (resultado)
-                {
-                    TempData["Sucesso"] = "Lista atualizada com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var listaDto = new UpdateListaDto
+                    {
+                        Id = id,
+                        Nome = model.Nome,
+                        Descricao = model.Descricao,
+                        IsPublica = model.IsPublica
+                    };
+
+                    var resultado = await _listaService.UpdateAsync(id, usuarioId, listaDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Lista atualizada com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao atualizar a lista.");
                 }
-
-                ModelState.AddModelError("", "Erro ao atualizar a lista.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao atualizar a lista: {ex.Message}");
+                }
             }
 
             return View(model);
@@ -159,23 +207,31 @@ namespace CineFinder.Web.Controllers
         // GET: Listas/Excluir/5
         public async Task<IActionResult> Excluir(Guid id)
         {
-            var listaDto = await _listaService.ObterPorIdAsync(id);
-            if (listaDto == null)
+            try
+            {
+                var listaDto = await _listaService.GetByIdAsync(id);
+
+                var lista = new ListaViewModel
+                {
+                    Id = listaDto.Id,
+                    Nome = listaDto.Nome,
+                    Descricao = listaDto.Descricao,
+                    IsPublica = listaDto.IsPublica,
+                    DataCriacao = listaDto.DataCriacao,
+                    NomeUsuario = listaDto.Usuario?.Nome ?? "Usuário"
+                };
+
+                return View(lista);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var lista = new ListaViewModel
+            catch (Exception ex)
             {
-                Id = listaDto.Id,
-                Nome = listaDto.Nome,
-                Descricao = listaDto.Descricao,
-                IsPublica = listaDto.IsPublica,
-                DataCriacao = listaDto.DataCriacao,
-                NomeUsuario = listaDto.NomeUsuario
-            };
-
-            return View(lista);
+                TempData["ErrorMessage"] = $"Erro ao carregar lista: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Listas/Excluir/5
@@ -183,14 +239,28 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExcluirConfirmado(Guid id)
         {
-            var resultado = await _listaService.RemoverAsync(id);
-            if (resultado)
+            try
             {
-                TempData["Sucesso"] = "Lista exclu�da com sucesso!";
+                // TODO: Obter usuário logado
+                var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
+
+                var resultado = await _listaService.DeleteAsync(id, usuarioId);
+                if (resultado)
+                {
+                    TempData["SuccessMessage"] = "Lista excluída com sucesso!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Erro ao excluir a lista.";
+                }
             }
-            else
+            catch (KeyNotFoundException)
             {
-                TempData["Erro"] = "Erro ao excluir a lista.";
+                TempData["ErrorMessage"] = "Lista não encontrada.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao excluir a lista: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
@@ -199,24 +269,32 @@ namespace CineFinder.Web.Controllers
         // GET: Listas/AdicionarFilme/5
         public async Task<IActionResult> AdicionarFilme(Guid id)
         {
-            var listaDto = await _listaService.ObterPorIdAsync(id);
-            if (listaDto == null)
+            try
+            {
+                var listaDto = await _listaService.GetByIdAsync(id);
+
+                var filmesDto = await _filmeService.GetAllAsync();
+
+                ViewBag.ListaId = id;
+                ViewBag.ListaNome = listaDto.Nome;
+                ViewBag.Filmes = filmesDto.Select(f => new FilmeViewModel
+                {
+                    Id = f.Id,
+                    Titulo = f.Titulo,
+                    PosterUrl = f.PosterUrl
+                }).ToList();
+
+                return View();
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var filmesDto = await _filmeService.ObterTodosAsync();
-
-            ViewBag.ListaId = id;
-            ViewBag.ListaNome = listaDto.Nome;
-            ViewBag.Filmes = filmesDto.Select(f => new FilmeViewModel
+            catch (Exception ex)
             {
-                Id = f.Id,
-                Titulo = f.Titulo,
-                PosterUrl = f.PosterUrl
-            }).ToList();
-
-            return View();
+                TempData["ErrorMessage"] = $"Erro ao carregar lista: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Listas/AdicionarFilme
@@ -224,14 +302,19 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AdicionarFilme(Guid listaId, Guid filmeId)
         {
-            var resultado = await _listaService.AdicionarFilmeAsync(listaId, filmeId);
-            if (resultado)
+            try
             {
-                TempData["Sucesso"] = "Filme adicionado � lista com sucesso!";
+                // TODO: Obter usuário logado
+                var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
+
+                var dto = new AdicionarFilmeListaDto { FilmeId = filmeId };
+                await _listaService.AdicionarFilmeAsync(listaId, usuarioId, dto);
+                
+                TempData["SuccessMessage"] = "Filme adicionado à lista com sucesso!";
             }
-            else
+            catch (Exception ex)
             {
-                TempData["Erro"] = "Erro ao adicionar o filme � lista.";
+                TempData["ErrorMessage"] = $"Erro ao adicionar o filme à lista: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Detalhes), new { id = listaId });
@@ -242,14 +325,17 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoverFilme(Guid listaId, Guid filmeId)
         {
-            var resultado = await _listaService.RemoverFilmeAsync(listaId, filmeId);
-            if (resultado)
+            try
             {
-                TempData["Sucesso"] = "Filme removido da lista com sucesso!";
+                // TODO: Obter usuário logado
+                var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
+
+                await _listaService.RemoverFilmeAsync(listaId, usuarioId, filmeId);
+                TempData["SuccessMessage"] = "Filme removido da lista com sucesso!";
             }
-            else
+            catch (Exception ex)
             {
-                TempData["Erro"] = "Erro ao remover o filme da lista.";
+                TempData["ErrorMessage"] = $"Erro ao remover o filme da lista: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Detalhes), new { id = listaId });
@@ -258,21 +344,34 @@ namespace CineFinder.Web.Controllers
         // GET: Listas/MinhasListas
         public async Task<IActionResult> MinhasListas(Guid usuarioId)
         {
-            var listasDto = await _listaService.ObterPorUsuarioIdAsync(usuarioId);
-            var listas = listasDto.Select(l => new ListaViewModel
+            try
             {
-                Id = l.Id,
-                Nome = l.Nome,
-                Descricao = l.Descricao,
-                IsPublica = l.IsPublica,
-                DataCriacao = l.DataCriacao,
-                TotalFilmes = l.TotalFilmes
-            }).ToList();
+                var listasDto = await _listaService.GetByUsuarioAsync(usuarioId);
+                var listas = listasDto.Select(l => new ListaViewModel
+                {
+                    Id = l.Id,
+                    Nome = l.Nome,
+                    Descricao = l.Descricao,
+                    IsPublica = l.IsPublica,
+                    DataCriacao = l.DataCriacao,
+                    TotalFilmes = l.TotalFilmes,
+                    NomeUsuario = l.Usuario?.Nome ?? "Usuário"
+                }).ToList();
 
-            var usuarioDto = await _usuarioService.ObterPorIdAsync(usuarioId);
-            ViewBag.NomeUsuario = usuarioDto?.Nome ?? "Usu�rio";
+                var usuarioDto = await _usuarioService.GetByIdAsync(usuarioId);
+                ViewBag.NomeUsuario = usuarioDto?.Nome ?? "Usuário";
 
-            return View(listas);
+                return View(listas);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar listas: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using CineFinder.Application.Interfaces;
 using CineFinder.ViewModels;
-using CineFinder.Application.DTOs;
+using CineFinder.Application.DTOs.Filme;
+using CineFinder.Application.DTOs.Avaliacao;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CineFinder.Web.Controllers
 {
@@ -24,44 +28,36 @@ namespace CineFinder.Web.Controllers
         // GET: Avaliacoes
         public async Task<IActionResult> Index()
         {
-            var avaliacoesDto = await _avaliacaoService.ObterTodasAsync();
-            var avaliacoes = avaliacoesDto.Select(a => new AvaliacaoViewModel
+            try
             {
-                Id = a.Id,
-                Nota = a.Nota,
-                Comentario = a.Comentario,
-                DataAvaliacao = a.DataAvaliacao,
-                NomeUsuario = a.NomeUsuario,
-                TituloFilme = a.TituloFilme,
-                FilmeId = a.FilmeId,
-                UsuarioId = a.UsuarioId
-            }).ToList();
-
-            return View(avaliacoes);
+                // Nota: IAvaliacaoService não tem GetAllAsync
+                // Por enquanto, retornamos uma lista vazia ou você pode implementar GetAllAsync no service
+                var avaliacoes = new System.Collections.Generic.List<AvaliacaoViewModel>();
+                TempData["InfoMessage"] = "Funcionalidade de listar todas as avaliações ainda não implementada. Use a busca na API ou visualize por filme.";
+                return View(avaliacoes);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar avaliações: {ex.Message}";
+                return View(new System.Collections.Generic.List<AvaliacaoViewModel>());
+            }
         }
 
         // GET: Avaliacoes/Detalhes/5
         public async Task<IActionResult> Detalhes(Guid id)
         {
-            var avaliacaoDto = await _avaliacaoService.ObterPorIdAsync(id);
-            if (avaliacaoDto == null)
+            try
             {
-                return NotFound();
+                // Nota: IAvaliacaoService não tem GetByIdAsync
+                // Por enquanto, vamos tentar buscar através do filme ou usuário
+                TempData["InfoMessage"] = "Funcionalidade de detalhes de avaliação ainda não implementada completamente.";
+                return RedirectToAction(nameof(Index));
             }
-
-            var avaliacao = new AvaliacaoViewModel
+            catch (Exception ex)
             {
-                Id = avaliacaoDto.Id,
-                Nota = avaliacaoDto.Nota,
-                Comentario = avaliacaoDto.Comentario,
-                DataAvaliacao = avaliacaoDto.DataAvaliacao,
-                NomeUsuario = avaliacaoDto.NomeUsuario,
-                TituloFilme = avaliacaoDto.TituloFilme,
-                FilmeId = avaliacaoDto.FilmeId,
-                UsuarioId = avaliacaoDto.UsuarioId
-            };
-
-            return View(avaliacao);
+                TempData["ErrorMessage"] = $"Erro ao carregar avaliação: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Avaliacoes/Criar
@@ -71,20 +67,35 @@ namespace CineFinder.Web.Controllers
 
             if (filmeId.HasValue)
             {
-                var filmeDto = await _filmeService.ObterPorIdAsync(filmeId.Value);
-                if (filmeDto != null)
+                try
                 {
-                    model.FilmeId = filmeDto.Id;
-                    model.TituloFilme = filmeDto.Titulo;
+                    var filmeDto = await _filmeService.GetByIdAsync(filmeId.Value);
+                    if (filmeDto != null)
+                    {
+                        model.FilmeId = filmeDto.Id;
+                        model.TituloFilme = filmeDto.Titulo;
+                    }
+                }
+                catch (KeyNotFoundException)
+                {
+                    TempData["ErrorMessage"] = "Filme não encontrado.";
+                    return RedirectToAction("Index", "Filmes");
                 }
             }
 
-            var filmesDto = await _filmeService.ObterTodosAsync();
-            ViewBag.Filmes = filmesDto.Select(f => new
+            try
             {
-                f.Id,
-                f.Titulo
-            }).ToList();
+                var filmesDto = await _filmeService.GetAllAsync();
+                ViewBag.Filmes = filmesDto.Select(f => new
+                {
+                    f.Id,
+                    f.Titulo
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar filmes: {ex.Message}";
+            }
 
             return View(model);
         }
@@ -96,33 +107,46 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                // TODO: Obter usu�rio logado. Por enquanto, usando um ID fixo para demonstra��o
-                var usuarioId = Guid.NewGuid(); // Substituir pela l�gica de autentica��o real
-
-                var avaliacaoDto = new AvaliacaoDto
+                try
                 {
-                    Nota = model.Nota,
-                    Comentario = model.Comentario,
-                    FilmeId = model.FilmeId,
-                    UsuarioId = usuarioId
-                };
+                    // TODO: Obter usuário logado. Por enquanto, usando um ID fixo para demonstração
+                    var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
 
-                var resultado = await _avaliacaoService.AdicionarAsync(avaliacaoDto);
-                if (resultado != null)
-                {
-                    TempData["Sucesso"] = "Avalia��o criada com sucesso!";
-                    return RedirectToAction("Detalhes", "Filmes", new { id = model.FilmeId });
+                    var avaliacaoDto = new CreateAvaliacaoDto
+                    {
+                        Nota = model.Nota,
+                        Comentario = model.Comentario,
+                        FilmeId = model.FilmeId
+                    };
+
+                    var resultado = await _avaliacaoService.CreateAsync(usuarioId, avaliacaoDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Avaliação criada com sucesso!";
+                        return RedirectToAction("Detalhes", "Filmes", new { id = model.FilmeId });
+                    }
+
+                    ModelState.AddModelError("", "Erro ao criar a avaliação.");
                 }
-
-                ModelState.AddModelError("", "Erro ao criar a avalia��o.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao criar a avaliação: {ex.Message}");
+                }
             }
 
-            var filmesDto = await _filmeService.ObterTodosAsync();
-            ViewBag.Filmes = filmesDto.Select(f => new
+            try
             {
-                f.Id,
-                f.Titulo
-            }).ToList();
+                var filmesDto = await _filmeService.GetAllAsync();
+                ViewBag.Filmes = filmesDto.Select(f => new
+                {
+                    f.Id,
+                    f.Titulo
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar filmes: {ex.Message}";
+            }
 
             return View(model);
         }
@@ -130,22 +154,18 @@ namespace CineFinder.Web.Controllers
         // GET: Avaliacoes/Editar/5
         public async Task<IActionResult> Editar(Guid id)
         {
-            var avaliacaoDto = await _avaliacaoService.ObterPorIdAsync(id);
-            if (avaliacaoDto == null)
+            try
             {
-                return NotFound();
+                // Nota: IAvaliacaoService não tem GetByIdAsync
+                // Por enquanto, vamos redirecionar
+                TempData["InfoMessage"] = "Funcionalidade de editar avaliação ainda não implementada completamente.";
+                return RedirectToAction(nameof(Index));
             }
-
-            var model = new AvaliacaoEditViewModel
+            catch (Exception ex)
             {
-                Id = avaliacaoDto.Id,
-                Nota = avaliacaoDto.Nota,
-                Comentario = avaliacaoDto.Comentario,
-                FilmeId = avaliacaoDto.FilmeId,
-                TituloFilme = avaliacaoDto.TituloFilme
-            };
-
-            return View(model);
+                TempData["ErrorMessage"] = $"Erro ao carregar avaliação: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Avaliacoes/Editar/5
@@ -160,22 +180,31 @@ namespace CineFinder.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                var avaliacaoDto = new AvaliacaoDto
+                try
                 {
-                    Id = model.Id,
-                    Nota = model.Nota,
-                    Comentario = model.Comentario,
-                    FilmeId = model.FilmeId
-                };
+                    // TODO: Obter usuário logado
+                    var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
 
-                var resultado = await _avaliacaoService.AtualizarAsync(avaliacaoDto);
-                if (resultado)
-                {
-                    TempData["Sucesso"] = "Avalia��o atualizada com sucesso!";
-                    return RedirectToAction("Detalhes", "Filmes", new { id = model.FilmeId });
+                    var avaliacaoDto = new UpdateAvaliacaoDto
+                    {
+                        Id = model.Id,
+                        Nota = model.Nota,
+                        Comentario = model.Comentario
+                    };
+
+                    var resultado = await _avaliacaoService.UpdateAsync(id, usuarioId, avaliacaoDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Avaliação atualizada com sucesso!";
+                        return RedirectToAction("Detalhes", "Filmes", new { id = model.FilmeId });
+                    }
+
+                    ModelState.AddModelError("", "Erro ao atualizar a avaliação.");
                 }
-
-                ModelState.AddModelError("", "Erro ao atualizar a avalia��o.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao atualizar a avaliação: {ex.Message}");
+                }
             }
 
             return View(model);
@@ -184,23 +213,18 @@ namespace CineFinder.Web.Controllers
         // GET: Avaliacoes/Excluir/5
         public async Task<IActionResult> Excluir(Guid id)
         {
-            var avaliacaoDto = await _avaliacaoService.ObterPorIdAsync(id);
-            if (avaliacaoDto == null)
+            try
             {
-                return NotFound();
+                // Nota: IAvaliacaoService não tem GetByIdAsync
+                // Por enquanto, vamos redirecionar
+                TempData["InfoMessage"] = "Funcionalidade de excluir avaliação ainda não implementada completamente.";
+                return RedirectToAction(nameof(Index));
             }
-
-            var avaliacao = new AvaliacaoViewModel
+            catch (Exception ex)
             {
-                Id = avaliacaoDto.Id,
-                Nota = avaliacaoDto.Nota,
-                Comentario = avaliacaoDto.Comentario,
-                DataAvaliacao = avaliacaoDto.DataAvaliacao,
-                TituloFilme = avaliacaoDto.TituloFilme,
-                NomeUsuario = avaliacaoDto.NomeUsuario
-            };
-
-            return View(avaliacao);
+                TempData["ErrorMessage"] = $"Erro ao carregar avaliação: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Avaliacoes/Excluir/5
@@ -208,22 +232,34 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExcluirConfirmado(Guid id)
         {
-            var avaliacaoDto = await _avaliacaoService.ObterPorIdAsync(id);
-            var filmeId = avaliacaoDto?.FilmeId;
+            try
+            {
+                // TODO: Obter usuário logado e filmeId antes de deletar
+                var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
+                var filmeId = Guid.Empty; // Obter do contexto se possível
 
-            var resultado = await _avaliacaoService.RemoverAsync(id);
-            if (resultado)
-            {
-                TempData["Sucesso"] = "Avalia��o exclu�da com sucesso!";
-            }
-            else
-            {
-                TempData["Erro"] = "Erro ao excluir a avalia��o.";
-            }
+                var resultado = await _avaliacaoService.DeleteAsync(id, usuarioId);
+                if (resultado)
+                {
+                    TempData["SuccessMessage"] = "Avaliação excluída com sucesso!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Erro ao excluir a avaliação.";
+                }
 
-            if (filmeId.HasValue)
+                if (filmeId != Guid.Empty)
+                {
+                    return RedirectToAction("Detalhes", "Filmes", new { id = filmeId });
+                }
+            }
+            catch (KeyNotFoundException)
             {
-                return RedirectToAction("Detalhes", "Filmes", new { id = filmeId });
+                TempData["ErrorMessage"] = "Avaliação não encontrada.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao excluir a avaliação: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));

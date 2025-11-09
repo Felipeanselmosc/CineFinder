@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CineFinder.Application.Interfaces;
 using CineFinder.ViewModels;
-using CineFinder.Application.DTOs;
+using CineFinder.Application.DTOs.Genero;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CineFinder.Web.Controllers
 {
@@ -19,48 +22,63 @@ namespace CineFinder.Web.Controllers
         // GET: Generos
         public async Task<IActionResult> Index()
         {
-            var generosDto = await _generoService.ObterTodosAsync();
-            var generos = generosDto.Select(g => new GeneroViewModel
+            try
             {
-                Id = g.Id,
-                Nome = g.Nome,
-                Descricao = g.Descricao,
-                TotalFilmes = g.TotalFilmes
-            }).ToList();
+                var generosDto = await _generoService.GetAllAsync();
+                var generos = generosDto.Select(g => new GeneroViewModel
+                {
+                    Id = g.Id,
+                    Nome = g.Nome,
+                    Descricao = g.Descricao
+                }).ToList();
 
-            return View(generos);
+                return View(generos);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar gêneros: {ex.Message}";
+                return View(new System.Collections.Generic.List<GeneroViewModel>());
+            }
         }
 
         // GET: Generos/Detalhes/5
         public async Task<IActionResult> Detalhes(Guid id)
         {
-            var generoDto = await _generoService.ObterPorIdAsync(id);
-            if (generoDto == null)
+            try
+            {
+                var generoDto = await _generoService.GetByIdAsync(id);
+
+                var genero = new GeneroViewModel
+                {
+                    Id = generoDto.Id,
+                    Nome = generoDto.Nome,
+                    Descricao = generoDto.Descricao
+                };
+
+                // Obter filmes do gênero
+                var filmesDto = await _filmeService.GetByGeneroAsync(id);
+                ViewBag.Filmes = filmesDto.Select(f => new FilmeViewModel
+                {
+                    Id = f.Id,
+                    Titulo = f.Titulo,
+                    Descricao = f.Descricao,
+                    PosterUrl = f.PosterUrl,
+                    Diretor = f.Diretor,
+                    DataLancamento = f.DataLancamento,
+                    Generos = f.Generos?.Select(g => g.Nome).ToList() ?? new System.Collections.Generic.List<string>()
+                }).ToList();
+
+                return View(genero);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var genero = new GeneroViewModel
+            catch (Exception ex)
             {
-                Id = generoDto.Id,
-                Nome = generoDto.Nome,
-                Descricao = generoDto.Descricao,
-                TotalFilmes = generoDto.TotalFilmes
-            };
-
-            // Obter filmes do g�nero
-            var filmesDto = await _filmeService.ObterPorGeneroAsync(id);
-            ViewBag.Filmes = filmesDto.Select(f => new FilmeViewModel
-            {
-                Id = f.Id,
-                Titulo = f.Titulo,
-                Descricao = f.Descricao,
-                PosterUrl = f.PosterUrl,
-                Diretor = f.Diretor,
-                DataLancamento = f.DataLancamento
-            }).ToList();
-
-            return View(genero);
+                TempData["ErrorMessage"] = $"Erro ao carregar gênero: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Generos/Criar
@@ -76,21 +94,28 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var generoDto = new GeneroDto
+                try
                 {
-                    Nome = model.Nome,
-                    Descricao = model.Descricao,
-                    TmdbGeneroId = model.TmdbGeneroId
-                };
+                    var generoDto = new CreateGeneroDto
+                    {
+                        Nome = model.Nome,
+                        Descricao = model.Descricao,
+                        TmdbGeneroId = model.TmdbGeneroId
+                    };
 
-                var resultado = await _generoService.AdicionarAsync(generoDto);
-                if (resultado != null)
-                {
-                    TempData["Sucesso"] = "G�nero criado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var resultado = await _generoService.CreateAsync(generoDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Gênero criado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao criar o gênero.");
                 }
-
-                ModelState.AddModelError("", "Erro ao criar o g�nero.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao criar o gênero: {ex.Message}");
+                }
             }
 
             return View(model);
@@ -99,21 +124,29 @@ namespace CineFinder.Web.Controllers
         // GET: Generos/Editar/5
         public async Task<IActionResult> Editar(Guid id)
         {
-            var generoDto = await _generoService.ObterPorIdAsync(id);
-            if (generoDto == null)
+            try
+            {
+                var generoDto = await _generoService.GetByIdAsync(id);
+
+                var model = new GeneroCreateViewModel
+                {
+                    Nome = generoDto.Nome,
+                    Descricao = generoDto.Descricao,
+                    TmdbGeneroId = generoDto.TmdbGeneroId
+                };
+
+                ViewBag.Id = id;
+                return View(model);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var model = new GeneroCreateViewModel
+            catch (Exception ex)
             {
-                Nome = generoDto.Nome,
-                Descricao = generoDto.Descricao,
-                TmdbGeneroId = generoDto.TmdbGeneroId
-            };
-
-            ViewBag.Id = id;
-            return View(model);
+                TempData["ErrorMessage"] = $"Erro ao carregar gênero: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Generos/Editar/5
@@ -123,22 +156,29 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var generoDto = new GeneroDto
+                try
                 {
-                    Id = id,
-                    Nome = model.Nome,
-                    Descricao = model.Descricao,
-                    TmdbGeneroId = model.TmdbGeneroId
-                };
+                    var generoDto = new UpdateGeneroDto
+                    {
+                        Id = id,
+                        Nome = model.Nome,
+                        Descricao = model.Descricao,
+                        TmdbGeneroId = model.TmdbGeneroId
+                    };
 
-                var resultado = await _generoService.AtualizarAsync(generoDto);
-                if (resultado)
-                {
-                    TempData["Sucesso"] = "G�nero atualizado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var resultado = await _generoService.UpdateAsync(generoDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Gênero atualizado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao atualizar o gênero.");
                 }
-
-                ModelState.AddModelError("", "Erro ao atualizar o g�nero.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao atualizar o gênero: {ex.Message}");
+                }
             }
 
             ViewBag.Id = id;
@@ -148,21 +188,28 @@ namespace CineFinder.Web.Controllers
         // GET: Generos/Excluir/5
         public async Task<IActionResult> Excluir(Guid id)
         {
-            var generoDto = await _generoService.ObterPorIdAsync(id);
-            if (generoDto == null)
+            try
+            {
+                var generoDto = await _generoService.GetByIdAsync(id);
+
+                var genero = new GeneroViewModel
+                {
+                    Id = generoDto.Id,
+                    Nome = generoDto.Nome,
+                    Descricao = generoDto.Descricao
+                };
+
+                return View(genero);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var genero = new GeneroViewModel
+            catch (Exception ex)
             {
-                Id = generoDto.Id,
-                Nome = generoDto.Nome,
-                Descricao = generoDto.Descricao,
-                TotalFilmes = generoDto.TotalFilmes
-            };
-
-            return View(genero);
+                TempData["ErrorMessage"] = $"Erro ao carregar gênero: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Generos/Excluir/5
@@ -170,14 +217,18 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExcluirConfirmado(Guid id)
         {
-            var resultado = await _generoService.RemoverAsync(id);
-            if (resultado)
+            try
             {
-                TempData["Sucesso"] = "G�nero exclu�do com sucesso!";
+                await _generoService.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Gênero excluído com sucesso!";
             }
-            else
+            catch (KeyNotFoundException)
             {
-                TempData["Erro"] = "Erro ao excluir o g�nero. Pode haver filmes associados.";
+                TempData["ErrorMessage"] = "Gênero não encontrado.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao excluir o gênero: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));

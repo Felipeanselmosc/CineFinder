@@ -1,7 +1,9 @@
 ﻿using CineFinder.Application.DTOs.Filme;
 using CineFinder.Application.Interfaces;
+using CineFinder.Application.Models;
 using CineFinder.Domain.Entities;
 using CineFinder.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +31,7 @@ namespace CineFinder.Application.Services
         {
             var filme = await _filmeRepository.GetWithGenerosAsync(id);
             if (filme == null)
-                throw new Exception("Filme não encontrado");
+                throw new KeyNotFoundException("Filme não encontrado");
 
             return MapToDto(filme);
         }
@@ -38,7 +40,7 @@ namespace CineFinder.Application.Services
         {
             var filme = await _filmeRepository.GetWithAvaliacoesAsync(id);
             if (filme == null)
-                throw new Exception("Filme não encontrado");
+                throw new KeyNotFoundException("Filme não encontrado");
 
             var filmeComGeneros = await _filmeRepository.GetWithGenerosAsync(id);
 
@@ -54,23 +56,19 @@ namespace CineFinder.Application.Services
                 Diretor = filme.Diretor,
                 Duracao = filme.Duracao,
                 NotaMedia = filme.NotaMedia,
-                Generos = filmeComGeneros.FilmeGeneros?.Select(fg => new GeneroSimplificadoDto
+                Generos = filmeComGeneros?.FilmeGeneros?.Select(fg => new GeneroSimplificadoDto
                 {
                     Id = fg.Genero.Id,
                     Nome = fg.Genero.Nome
-                }).ToList(),
-                Avaliacoes = filme.Avaliacoes?.Select(a => new AvaliacaoDto
+                }).ToList() ?? new List<GeneroSimplificadoDto>(),
+                Avaliacoes = filme.Avaliacoes?.Select(a => new AvaliacaoSimplificadaDto
                 {
                     Id = a.Id,
                     Nota = a.Nota,
                     Comentario = a.Comentario,
                     DataAvaliacao = a.DataAvaliacao,
-                    Usuario = new DTOs.Usuario.UsuarioDto
-                    {
-                        Id = a.Usuario.Id,
-                        Nome = a.Usuario.Nome
-                    }
-                }).ToList(),
+                    NomeUsuario = a.Usuario?.Nome ?? "Usuário Anônimo"
+                }).ToList() ?? new List<AvaliacaoSimplificadaDto>(),
                 TotalAvaliacoes = filme.Avaliacoes?.Count ?? 0
             };
         }
@@ -93,11 +91,45 @@ namespace CineFinder.Application.Services
             return filmes.Select(MapToDto);
         }
 
+        public async Task<IEnumerable<FilmeDto>> GetAllAsync()
+        {
+            var filmes = await _filmeRepository.GetAllAsync();
+            return filmes.Select(MapToDto);
+        }
+
+        public async Task<PagedResult<FilmeDto>> SearchAsync(FilmeSearchParameters parameters)
+        {
+            var (filmes, totalCount) = await _filmeRepository.SearchWithFiltersAsync(
+                titulo: parameters.Titulo,
+                generoId: parameters.GeneroId,
+                anoInicio: parameters.AnoInicio,
+                anoFim: parameters.AnoFim,
+                notaMinimaMedia: parameters.NotaMinimaMedia,
+                duracaoMinima: parameters.DuracaoMinima,
+                duracaoMaxima: parameters.DuracaoMaxima,
+                diretor: parameters.Diretor,
+                generosIds: parameters.GenerosIds,
+                orderBy: parameters.OrderBy,
+                orderDescending: parameters.OrderDescending,
+                pageNumber: parameters.PageNumber,
+                pageSize: parameters.PageSize
+            );
+
+            var filmesDto = filmes.Select(MapToDto).ToList();
+
+            return new PagedResult<FilmeDto>(
+                filmesDto,
+                totalCount,
+                parameters.PageNumber,
+                parameters.PageSize
+            );
+        }
+
         public async Task<FilmeDto> CreateAsync(CreateFilmeDto dto)
         {
             var filmeExistente = await _filmeRepository.GetByTmdbIdAsync(dto.TmdbId);
             if (filmeExistente != null)
-                throw new Exception("Filme já cadastrado");
+                throw new InvalidOperationException("Filme já cadastrado");
 
             var filme = new Filme
             {
@@ -111,12 +143,93 @@ namespace CineFinder.Application.Services
                 Duracao = dto.Duracao
             };
 
+            // Adicionar gêneros se fornecidos
+            if (dto.GeneroIds != null && dto.GeneroIds.Any())
+            {
+                foreach (var generoId in dto.GeneroIds)
+                {
+                    var genero = await _generoRepository.GetByIdAsync(generoId);
+                    if (genero != null)
+                    {
+                        filme.FilmeGeneros.Add(new FilmeGenero
+                        {
+                            FilmeId = filme.Id,
+                            GeneroId = genero.Id
+                        });
+                    }
+                }
+            }
+
             await _filmeRepository.AddAsync(filme);
-            return MapToDto(filme);
+            
+            // Recarregar com gêneros para retornar DTO completo
+            var filmeCompleto = await _filmeRepository.GetWithGenerosAsync(filme.Id);
+            return MapToDto(filmeCompleto);
+        }
+
+        public async Task<FilmeDto> UpdateAsync(UpdateFilmeDto dto)
+        {
+            var filme = await _filmeRepository.GetWithGenerosAsync(dto.Id);
+            if (filme == null)
+                throw new KeyNotFoundException("Filme não encontrado");
+
+            // Verificar se TMDB ID já existe em outro filme
+            var filmeComMesmoTmdbId = await _filmeRepository.GetByTmdbIdAsync(dto.TmdbId);
+            if (filmeComMesmoTmdbId != null && filmeComMesmoTmdbId.Id != dto.Id)
+                throw new InvalidOperationException("Já existe outro filme com este TMDB ID");
+
+            // Atualizar propriedades
+            filme.TmdbId = dto.TmdbId;
+            filme.Titulo = dto.Titulo;
+            filme.Descricao = dto.Descricao;
+            filme.DataLancamento = dto.DataLancamento;
+            filme.PosterUrl = dto.PosterUrl;
+            filme.TrailerUrl = dto.TrailerUrl;
+            filme.Diretor = dto.Diretor;
+            filme.Duracao = dto.Duracao;
+
+            // Atualizar gêneros
+            if (dto.GenerosIds != null)
+            {
+                // Remover gêneros existentes
+                filme.FilmeGeneros.Clear();
+
+                // Adicionar novos gêneros
+                foreach (var generoId in dto.GenerosIds)
+                {
+                    var genero = await _generoRepository.GetByIdAsync(generoId);
+                    if (genero != null)
+                    {
+                        filme.FilmeGeneros.Add(new FilmeGenero
+                        {
+                            FilmeId = filme.Id,
+                            GeneroId = genero.Id
+                        });
+                    }
+                }
+            }
+
+            await _filmeRepository.UpdateAsync(filme);
+            
+            // Recarregar com gêneros para retornar DTO completo
+            var filmeAtualizado = await _filmeRepository.GetWithGenerosAsync(filme.Id);
+            return MapToDto(filmeAtualizado);
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var filme = await _filmeRepository.GetByIdAsync(id);
+            if (filme == null)
+                throw new KeyNotFoundException("Filme não encontrado");
+
+            await _filmeRepository.DeleteAsync(id);
         }
 
         private FilmeDto MapToDto(Filme filme)
         {
+            if (filme == null)
+                return null;
+
             return new FilmeDto
             {
                 Id = filme.Id,
@@ -133,7 +246,7 @@ namespace CineFinder.Application.Services
                 {
                     Id = fg.Genero.Id,
                     Nome = fg.Genero.Nome
-                }).ToList()
+                }).ToList() ?? new List<GeneroSimplificadoDto>()
             };
         }
     }

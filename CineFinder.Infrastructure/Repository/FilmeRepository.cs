@@ -77,5 +77,112 @@ namespace CineFinder.Infrastructure.Repositories
                 .ThenInclude(fg => fg.Genero)
                 .FirstOrDefaultAsync(f => f.TmdbId == tmdbId);
         }
+
+        public async Task<(IEnumerable<Filme> filmes, int totalCount)> SearchWithFiltersAsync(
+            string? titulo = null,
+            Guid? generoId = null,
+            int? anoInicio = null,
+            int? anoFim = null,
+            int? notaMinimaMedia = null,
+            int? duracaoMinima = null,
+            int? duracaoMaxima = null,
+            string? diretor = null,
+            List<Guid>? generosIds = null,
+            string? orderBy = null,
+            bool orderDescending = false,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            var query = _context.Filmes
+                .Include(f => f.FilmeGeneros)
+                .ThenInclude(fg => fg.Genero)
+                .AsQueryable();
+
+            // Aplicar filtros
+            if (!string.IsNullOrWhiteSpace(titulo))
+            {
+                query = query.Where(f => f.Titulo.Contains(titulo));
+            }
+
+            if (generoId.HasValue)
+            {
+                query = query.Where(f => f.FilmeGeneros.Any(fg => fg.GeneroId == generoId.Value));
+            }
+
+            if (generosIds != null && generosIds.Any())
+            {
+                query = query.Where(f => f.FilmeGeneros.Any(fg => generosIds.Contains(fg.GeneroId)));
+            }
+
+            if (anoInicio.HasValue)
+            {
+                query = query.Where(f => f.DataLancamento.HasValue && f.DataLancamento.Value.Year >= anoInicio.Value);
+            }
+
+            if (anoFim.HasValue)
+            {
+                query = query.Where(f => f.DataLancamento.HasValue && f.DataLancamento.Value.Year <= anoFim.Value);
+            }
+
+            if (notaMinimaMedia.HasValue)
+            {
+                query = query.Where(f => f.NotaMedia.HasValue && f.NotaMedia.Value >= notaMinimaMedia.Value);
+            }
+
+            if (duracaoMinima.HasValue)
+            {
+                query = query.Where(f => f.Duracao.HasValue && f.Duracao.Value >= duracaoMinima.Value);
+            }
+
+            if (duracaoMaxima.HasValue)
+            {
+                query = query.Where(f => f.Duracao.HasValue && f.Duracao.Value <= duracaoMaxima.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(diretor))
+            {
+                query = query.Where(f => f.Diretor.Contains(diretor));
+            }
+
+            // Contar total antes da paginação
+            var totalCount = await query.CountAsync();
+
+            // Aplicar ordenação
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                switch (orderBy.ToLower())
+                {
+                    case "titulo":
+                        query = orderDescending ? query.OrderByDescending(f => f.Titulo) : query.OrderBy(f => f.Titulo);
+                        break;
+                    case "data":
+                    case "datalancamento":
+                        query = orderDescending ? query.OrderByDescending(f => f.DataLancamento) : query.OrderBy(f => f.DataLancamento);
+                        break;
+                    case "nota":
+                    case "notamedia":
+                        query = orderDescending ? query.OrderByDescending(f => f.NotaMedia) : query.OrderBy(f => f.NotaMedia);
+                        break;
+                    case "duracao":
+                        query = orderDescending ? query.OrderByDescending(f => f.Duracao) : query.OrderBy(f => f.Duracao);
+                        break;
+                    default:
+                        query = query.OrderBy(f => f.Titulo);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderBy(f => f.Titulo);
+            }
+
+            // Aplicar paginação
+            var filmes = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (filmes, totalCount);
+        }
     }
 }

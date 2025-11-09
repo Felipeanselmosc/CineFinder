@@ -1,7 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CineFinder.Application.Interfaces;
 using CineFinder.ViewModels;
-using CineFinder.Application.DTOs;
+using CineFinder.Application.DTOs.Filme;
+using CineFinder.Application.DTOs.Genero;
+using CineFinder.Application.DTOs.Avaliacao;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CineFinder.Web.Controllers
 {
@@ -24,63 +29,80 @@ namespace CineFinder.Web.Controllers
         // GET: Filmes
         public async Task<IActionResult> Index()
         {
-            var filmesDto = await _filmeService.ObterTodosAsync();
-            var filmes = filmesDto.Select(f => new FilmeViewModel
+            try
             {
-                Id = f.Id,
-                Titulo = f.Titulo,
-                Descricao = f.Descricao,
-                DataLancamento = f.DataLancamento,
-                PosterUrl = f.PosterUrl,
-                Diretor = f.Diretor,
-                Duracao = f.Duracao,
-                NotaMedia = f.NotaMedia,
-                TotalAvaliacoes = f.TotalAvaliacoes
-            }).ToList();
+                var filmesDto = await _filmeService.GetAllAsync();
+                var filmes = filmesDto.Select(f => new FilmeViewModel
+                {
+                    Id = f.Id,
+                    Titulo = f.Titulo,
+                    Descricao = f.Descricao,
+                    DataLancamento = f.DataLancamento,
+                    PosterUrl = f.PosterUrl,
+                    Diretor = f.Diretor,
+                    Duracao = f.Duracao,
+                    NotaMedia = f.NotaMedia,
+                    Generos = f.Generos?.Select(g => g.Nome).ToList() ?? new System.Collections.Generic.List<string>()
+                }).ToList();
 
-            return View(filmes);
+                return View(filmes);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar filmes: {ex.Message}";
+                return View(new System.Collections.Generic.List<FilmeViewModel>());
+            }
         }
 
         // GET: Filmes/Detalhes/5
         public async Task<IActionResult> Detalhes(Guid id)
         {
-            var filmeDto = await _filmeService.ObterPorIdAsync(id);
-            if (filmeDto == null)
+            try
+            {
+                var filmeDto = await _filmeService.GetDetalhadoAsync(id);
+                
+                var avaliacoesDto = await _avaliacaoService.GetByFilmeAsync(id);
+
+                var filme = new FilmeViewModel
+                {
+                    Id = filmeDto.Id,
+                    Titulo = filmeDto.Titulo,
+                    Descricao = filmeDto.Descricao,
+                    DataLancamento = filmeDto.DataLancamento,
+                    PosterUrl = filmeDto.PosterUrl,
+                    Diretor = filmeDto.Diretor,
+                    Duracao = filmeDto.Duracao,
+                    NotaMedia = filmeDto.NotaMedia,
+                    TotalAvaliacoes = filmeDto.TotalAvaliacoes,
+                    Generos = filmeDto.Generos?.Select(g => g.Nome).ToList() ?? new System.Collections.Generic.List<string>()
+                };
+
+                ViewBag.Avaliacoes = avaliacoesDto.Select(a => new AvaliacaoViewModel
+                {
+                    Id = a.Id,
+                    Nota = a.Nota,
+                    Comentario = a.Comentario,
+                    DataAvaliacao = a.DataAvaliacao,
+                    NomeUsuario = a.NomeUsuario
+                }).ToList();
+
+                return View(filme);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var avaliacoesDto = await _avaliacaoService.ObterPorFilmeIdAsync(id);
-
-            var filme = new FilmeViewModel
+            catch (Exception ex)
             {
-                Id = filmeDto.Id,
-                Titulo = filmeDto.Titulo,
-                Descricao = filmeDto.Descricao,
-                DataLancamento = filmeDto.DataLancamento,
-                PosterUrl = filmeDto.PosterUrl,
-                Diretor = filmeDto.Diretor,
-                Duracao = filmeDto.Duracao,
-                NotaMedia = filmeDto.NotaMedia,
-                TotalAvaliacoes = filmeDto.TotalAvaliacoes
-            };
-
-            ViewBag.Avaliacoes = avaliacoesDto.Select(a => new AvaliacaoViewModel
-            {
-                Id = a.Id,
-                Nota = a.Nota,
-                Comentario = a.Comentario,
-                DataAvaliacao = a.DataAvaliacao,
-                NomeUsuario = a.NomeUsuario
-            }).ToList();
-
-            return View(filme);
+                TempData["ErrorMessage"] = $"Erro ao carregar filme: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Filmes/Criar
         public async Task<IActionResult> Criar()
         {
-            var generosDto = await _generoService.ObterTodosAsync();
+            var generosDto = await _generoService.GetAllAsync();
             ViewBag.Generos = generosDto.Select(g => new GeneroViewModel
             {
                 Id = g.Id,
@@ -97,28 +119,37 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var filmeDto = new FilmeDto
+                try
                 {
-                    Titulo = model.Titulo,
-                    Descricao = model.Descricao,
-                    DataLancamento = model.DataLancamento,
-                    PosterUrl = model.PosterUrl,
-                    Diretor = model.Diretor,
-                    Duracao = model.Duracao,
-                    TmdbId = model.TmdbId
-                };
+                    var filmeDto = new CreateFilmeDto
+                    {
+                        Titulo = model.Titulo,
+                        Descricao = model.Descricao,
+                        DataLancamento = model.DataLancamento,
+                        PosterUrl = model.PosterUrl,
+                        TrailerUrl = model.TrailerUrl,
+                        Diretor = model.Diretor,
+                        Duracao = model.Duracao,
+                        TmdbId = model.TmdbId,
+                        GeneroIds = model.GenerosIds ?? new System.Collections.Generic.List<Guid>()
+                    };
 
-                var resultado = await _filmeService.AdicionarAsync(filmeDto);
-                if (resultado != null)
-                {
-                    TempData["Sucesso"] = "Filme criado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var resultado = await _filmeService.CreateAsync(filmeDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Filme criado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao criar o filme.");
                 }
-
-                ModelState.AddModelError("", "Erro ao criar o filme.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao criar o filme: {ex.Message}");
+                }
             }
 
-            var generosDto = await _generoService.ObterTodosAsync();
+            var generosDto = await _generoService.GetAllAsync();
             ViewBag.Generos = generosDto.Select(g => new GeneroViewModel
             {
                 Id = g.Id,
@@ -131,32 +162,41 @@ namespace CineFinder.Web.Controllers
         // GET: Filmes/Editar/5
         public async Task<IActionResult> Editar(Guid id)
         {
-            var filmeDto = await _filmeService.ObterPorIdAsync(id);
-            if (filmeDto == null)
+            try
+            {
+                var filmeDto = await _filmeService.GetByIdAsync(id);
+
+                var model = new FilmeEditViewModel
+                {
+                    Id = filmeDto.Id,
+                    Titulo = filmeDto.Titulo,
+                    Descricao = filmeDto.Descricao,
+                    DataLancamento = filmeDto.DataLancamento,
+                    PosterUrl = filmeDto.PosterUrl,
+                    Diretor = filmeDto.Diretor,
+                    Duracao = filmeDto.Duracao,
+                    TmdbId = filmeDto.TmdbId,
+                    GenerosIds = filmeDto.Generos?.Select(g => g.Id).ToList() ?? new System.Collections.Generic.List<Guid>()
+                };
+
+                var generosDto = await _generoService.GetAllAsync();
+                ViewBag.Generos = generosDto.Select(g => new GeneroViewModel
+                {
+                    Id = g.Id,
+                    Nome = g.Nome
+                }).ToList();
+
+                return View(model);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var model = new FilmeEditViewModel
+            catch (Exception ex)
             {
-                Id = filmeDto.Id,
-                Titulo = filmeDto.Titulo,
-                Descricao = filmeDto.Descricao,
-                DataLancamento = filmeDto.DataLancamento,
-                PosterUrl = filmeDto.PosterUrl,
-                Diretor = filmeDto.Diretor,
-                Duracao = filmeDto.Duracao,
-                TmdbId = filmeDto.TmdbId
-            };
-
-            var generosDto = await _generoService.ObterTodosAsync();
-            ViewBag.Generos = generosDto.Select(g => new GeneroViewModel
-            {
-                Id = g.Id,
-                Nome = g.Nome
-            }).ToList();
-
-            return View(model);
+                TempData["ErrorMessage"] = $"Erro ao carregar filme: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Filmes/Editar/5
@@ -171,29 +211,38 @@ namespace CineFinder.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                var filmeDto = new FilmeDto
+                try
                 {
-                    Id = model.Id,
-                    Titulo = model.Titulo,
-                    Descricao = model.Descricao,
-                    DataLancamento = model.DataLancamento,
-                    PosterUrl = model.PosterUrl,
-                    Diretor = model.Diretor,
-                    Duracao = model.Duracao,
-                    TmdbId = model.TmdbId
-                };
+                    var filmeDto = new UpdateFilmeDto
+                    {
+                        Id = model.Id,
+                        Titulo = model.Titulo,
+                        Descricao = model.Descricao,
+                        DataLancamento = model.DataLancamento,
+                        PosterUrl = model.PosterUrl,
+                        TrailerUrl = model.TrailerUrl,
+                        Diretor = model.Diretor,
+                        Duracao = model.Duracao,
+                        TmdbId = model.TmdbId,
+                        GenerosIds = model.GenerosIds ?? new System.Collections.Generic.List<Guid>()
+                    };
 
-                var resultado = await _filmeService.AtualizarAsync(filmeDto);
-                if (resultado)
-                {
-                    TempData["Sucesso"] = "Filme atualizado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var resultado = await _filmeService.UpdateAsync(filmeDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Filme atualizado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao atualizar o filme.");
                 }
-
-                ModelState.AddModelError("", "Erro ao atualizar o filme.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao atualizar o filme: {ex.Message}");
+                }
             }
 
-            var generosDto = await _generoService.ObterTodosAsync();
+            var generosDto = await _generoService.GetAllAsync();
             ViewBag.Generos = generosDto.Select(g => new GeneroViewModel
             {
                 Id = g.Id,
@@ -206,24 +255,32 @@ namespace CineFinder.Web.Controllers
         // GET: Filmes/Excluir/5
         public async Task<IActionResult> Excluir(Guid id)
         {
-            var filmeDto = await _filmeService.ObterPorIdAsync(id);
-            if (filmeDto == null)
+            try
+            {
+                var filmeDto = await _filmeService.GetByIdAsync(id);
+
+                var filme = new FilmeViewModel
+                {
+                    Id = filmeDto.Id,
+                    Titulo = filmeDto.Titulo,
+                    Descricao = filmeDto.Descricao,
+                    DataLancamento = filmeDto.DataLancamento,
+                    PosterUrl = filmeDto.PosterUrl,
+                    Diretor = filmeDto.Diretor,
+                    Duracao = filmeDto.Duracao
+                };
+
+                return View(filme);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var filme = new FilmeViewModel
+            catch (Exception ex)
             {
-                Id = filmeDto.Id,
-                Titulo = filmeDto.Titulo,
-                Descricao = filmeDto.Descricao,
-                DataLancamento = filmeDto.DataLancamento,
-                PosterUrl = filmeDto.PosterUrl,
-                Diretor = filmeDto.Diretor,
-                Duracao = filmeDto.Duracao
-            };
-
-            return View(filme);
+                TempData["ErrorMessage"] = $"Erro ao carregar filme: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Filmes/Excluir/5
@@ -231,8 +288,8 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExcluirConfirmado(Guid id)
         {
-            var resultado = await _filmeService.RemoverAsync(id);
-            if (resultado)
+            await _filmeService.DeleteAsync(id);
+            // Removido - DeleteAsync não retorna bool
             {
                 TempData["Sucesso"] = "Filme exclu�do com sucesso!";
             }
@@ -247,7 +304,7 @@ namespace CineFinder.Web.Controllers
         // GET: Filmes/Buscar
         public async Task<IActionResult> Buscar(string termo, Guid? generoId, int? ano)
         {
-            var generosDto = await _generoService.ObterTodosAsync();
+            var generosDto = await _generoService.GetAllAsync();
             var model = new FilmeBuscaViewModel
             {
                 Termo = termo,
@@ -262,7 +319,7 @@ namespace CineFinder.Web.Controllers
 
             if (!string.IsNullOrEmpty(termo) || generoId.HasValue || ano.HasValue)
             {
-                var filmesDto = await _filmeService.BuscarFilmesAsync(termo, generoId, ano);
+                var filmesDto = await _filmeService.SearchAsync(termo ?? "");
                 model.Resultados = filmesDto.Select(f => new FilmeViewModel
                 {
                     Id = f.Id,
@@ -282,27 +339,36 @@ namespace CineFinder.Web.Controllers
         // GET: Filmes/PorGenero/5
         public async Task<IActionResult> PorGenero(Guid generoId)
         {
-            var generoDto = await _generoService.ObterPorIdAsync(generoId);
-            if (generoDto == null)
+            try
+            {
+                var generoDto = await _generoService.GetByIdAsync(generoId);
+
+                var filmesDto = await _filmeService.GetByGeneroAsync(generoId);
+                var filmes = filmesDto.Select(f => new FilmeViewModel
+                {
+                    Id = f.Id,
+                    Titulo = f.Titulo,
+                    Descricao = f.Descricao,
+                    DataLancamento = f.DataLancamento,
+                    PosterUrl = f.PosterUrl,
+                    Diretor = f.Diretor,
+                    Duracao = f.Duracao,
+                    NotaMedia = f.NotaMedia,
+                    Generos = f.Generos?.Select(g => g.Nome).ToList() ?? new System.Collections.Generic.List<string>()
+                }).ToList();
+
+                ViewBag.NomeGenero = generoDto.Nome;
+                return View(filmes);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var filmesDto = await _filmeService.ObterPorGeneroAsync(generoId);
-            var filmes = filmesDto.Select(f => new FilmeViewModel
+            catch (Exception ex)
             {
-                Id = f.Id,
-                Titulo = f.Titulo,
-                Descricao = f.Descricao,
-                DataLancamento = f.DataLancamento,
-                PosterUrl = f.PosterUrl,
-                Diretor = f.Diretor,
-                Duracao = f.Duracao,
-                NotaMedia = f.NotaMedia
-            }).ToList();
-
-            ViewBag.NomeGenero = generoDto.Nome;
-            return View(filmes);
+                TempData["ErrorMessage"] = $"Erro ao carregar filmes: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
     }
 }

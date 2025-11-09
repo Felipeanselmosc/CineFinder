@@ -14,5 +14,19 @@ namespace CineFinder.Domain.Interfaces
         Task<IEnumerable<Filme>> SearchByTituloAsync(string titulo);
         Task<IEnumerable<Filme>> GetTopRatedAsync(int top);
         Task<Filme?> GetByTmdbIdAsync(int tmdbId);
+        Task<(IEnumerable<Filme> filmes, int totalCount)> SearchWithFiltersAsync(
+            string? titulo = null,
+            Guid? generoId = null,
+            int? anoInicio = null,
+            int? anoFim = null,
+            int? notaMinimaMedia = null,
+            int? duracaoMinima = null,
+            int? duracaoMaxima = null,
+            string? diretor = null,
+            List<Guid>? generosIds = null,
+            string? orderBy = null,
+            bool orderDescending = false,
+            int pageNumber = 1,
+            int pageSize = 10);
     }
 }

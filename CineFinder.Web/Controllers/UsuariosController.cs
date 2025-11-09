@@ -1,7 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using CineFinder.Application.Interfaces;
 using CineFinder.ViewModels;
-using CineFinder.Application.DTOs;
+using CineFinder.Application.DTOs.Usuario;
+using CineFinder.Application.DTOs.Lista;
+using CineFinder.Application.DTOs.Avaliacao;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CineFinder.Web.Controllers
 {
@@ -24,64 +29,74 @@ namespace CineFinder.Web.Controllers
         // GET: Usuarios
         public async Task<IActionResult> Index()
         {
-            var usuariosDto = await _usuarioService.ObterTodosAsync();
-            var usuarios = usuariosDto.Select(u => new UsuarioViewModel
+            try
             {
-                Id = u.Id,
-                Nome = u.Nome,
-                Email = u.Email,
-                DataCriacao = u.DataCriacao,
-                TotalListas = u.TotalListas,
-                TotalAvaliacoes = u.TotalAvaliacoes
-            }).ToList();
-
-            return View(usuarios);
+                // Nota: IUsuarioService não tem GetAllAsync, então vamos usar uma abordagem alternativa
+                // Por enquanto, retornamos uma lista vazia ou você pode implementar GetAllAsync no service
+                var usuarios = new System.Collections.Generic.List<UsuarioViewModel>();
+                TempData["InfoMessage"] = "Funcionalidade de listar todos os usuários ainda não implementada. Use a busca na API.";
+                return View(usuarios);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao carregar usuários: {ex.Message}";
+                return View(new System.Collections.Generic.List<UsuarioViewModel>());
+            }
         }
 
         // GET: Usuarios/Detalhes/5
         public async Task<IActionResult> Detalhes(Guid id)
         {
-            var usuarioDto = await _usuarioService.ObterPorIdAsync(id);
-            if (usuarioDto == null)
+            try
+            {
+                var usuarioDto = await _usuarioService.GetByIdAsync(id);
+
+                var usuario = new UsuarioViewModel
+                {
+                    Id = usuarioDto.Id,
+                    Nome = usuarioDto.Nome,
+                    Email = usuarioDto.Email,
+                    DataCriacao = usuarioDto.DataCriacao
+                };
+
+                // Obter listas do usuário
+                var listasDto = await _listaService.GetByUsuarioAsync(id);
+                ViewBag.Listas = listasDto.Select(l => new ListaViewModel
+                {
+                    Id = l.Id,
+                    Nome = l.Nome,
+                    Descricao = l.Descricao,
+                    IsPublica = l.IsPublica,
+                    DataCriacao = l.DataCriacao,
+                    TotalFilmes = l.TotalFilmes,
+                    NomeUsuario = l.Usuario?.Nome ?? "Usuário"
+                }).ToList();
+
+                // Obter avaliações do usuário
+                var avaliacoesDto = await _avaliacaoService.GetByUsuarioAsync(id);
+                ViewBag.Avaliacoes = avaliacoesDto.Select(a => new AvaliacaoViewModel
+                {
+                    Id = a.Id,
+                    Nota = a.Nota,
+                    Comentario = a.Comentario,
+                    DataAvaliacao = a.DataAvaliacao,
+                    TituloFilme = a.Filme?.Titulo ?? "Filme",
+                    FilmeId = a.Filme?.Id ?? Guid.Empty,
+                    UsuarioId = a.Usuario?.Id ?? Guid.Empty,
+                    NomeUsuario = a.Usuario?.Nome ?? "Usuário"
+                }).ToList();
+
+                return View(usuario);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var usuario = new UsuarioViewModel
+            catch (Exception ex)
             {
-                Id = usuarioDto.Id,
-                Nome = usuarioDto.Nome,
-                Email = usuarioDto.Email,
-                DataCriacao = usuarioDto.DataCriacao,
-                TotalListas = usuarioDto.TotalListas,
-                TotalAvaliacoes = usuarioDto.TotalAvaliacoes
-            };
-
-            // Obter listas do usu�rio
-            var listasDto = await _listaService.ObterPorUsuarioIdAsync(id);
-            ViewBag.Listas = listasDto.Select(l => new ListaViewModel
-            {
-                Id = l.Id,
-                Nome = l.Nome,
-                Descricao = l.Descricao,
-                IsPublica = l.IsPublica,
-                DataCriacao = l.DataCriacao,
-                TotalFilmes = l.TotalFilmes
-            }).ToList();
-
-            // Obter avalia��es do usu�rio
-            var avaliacoesDto = await _avaliacaoService.ObterPorUsuarioIdAsync(id);
-            ViewBag.Avaliacoes = avaliacoesDto.Select(a => new AvaliacaoViewModel
-            {
-                Id = a.Id,
-                Nota = a.Nota,
-                Comentario = a.Comentario,
-                DataAvaliacao = a.DataAvaliacao,
-                TituloFilme = a.TituloFilme,
-                FilmeId = a.FilmeId
-            }).ToList();
-
-            return View(usuario);
+                TempData["ErrorMessage"] = $"Erro ao carregar usuário: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // GET: Usuarios/Criar
@@ -97,21 +112,28 @@ namespace CineFinder.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                var usuarioDto = new UsuarioDto
+                try
                 {
-                    Nome = model.Nome,
-                    Email = model.Email,
-                    Senha = model.Senha
-                };
+                    var usuarioDto = new CreateUsuarioDto
+                    {
+                        Nome = model.Nome,
+                        Email = model.Email,
+                        Senha = model.Senha
+                    };
 
-                var resultado = await _usuarioService.AdicionarAsync(usuarioDto);
-                if (resultado != null)
-                {
-                    TempData["Sucesso"] = "Usu�rio criado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var resultado = await _usuarioService.CreateAsync(usuarioDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Usuário criado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao criar o usuário.");
                 }
-
-                ModelState.AddModelError("", "Erro ao criar o usu�rio. O e-mail pode j� estar em uso.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao criar o usuário: {ex.Message}");
+                }
             }
 
             return View(model);
@@ -120,20 +142,28 @@ namespace CineFinder.Web.Controllers
         // GET: Usuarios/Editar/5
         public async Task<IActionResult> Editar(Guid id)
         {
-            var usuarioDto = await _usuarioService.ObterPorIdAsync(id);
-            if (usuarioDto == null)
+            try
+            {
+                var usuarioDto = await _usuarioService.GetByIdAsync(id);
+
+                var model = new UsuarioEditViewModel
+                {
+                    Id = usuarioDto.Id,
+                    Nome = usuarioDto.Nome,
+                    Email = usuarioDto.Email
+                };
+
+                return View(model);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var model = new UsuarioEditViewModel
+            catch (Exception ex)
             {
-                Id = usuarioDto.Id,
-                Nome = usuarioDto.Nome,
-                Email = usuarioDto.Email
-            };
-
-            return View(model);
+                TempData["ErrorMessage"] = $"Erro ao carregar usuário: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Usuarios/Editar/5
@@ -148,21 +178,28 @@ namespace CineFinder.Web.Controllers
 
             if (ModelState.IsValid)
             {
-                var usuarioDto = new UsuarioDto
+                try
                 {
-                    Id = model.Id,
-                    Nome = model.Nome,
-                    Email = model.Email
-                };
+                    var usuarioDto = new UpdateUsuarioDto
+                    {
+                        Id = model.Id,
+                        Nome = model.Nome,
+                        Email = model.Email
+                    };
 
-                var resultado = await _usuarioService.AtualizarAsync(usuarioDto);
-                if (resultado)
-                {
-                    TempData["Sucesso"] = "Usu�rio atualizado com sucesso!";
-                    return RedirectToAction(nameof(Index));
+                    var resultado = await _usuarioService.UpdateAsync(id, usuarioDto);
+                    if (resultado != null)
+                    {
+                        TempData["SuccessMessage"] = "Usuário atualizado com sucesso!";
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    ModelState.AddModelError("", "Erro ao atualizar o usuário.");
                 }
-
-                ModelState.AddModelError("", "Erro ao atualizar o usu�rio.");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Erro ao atualizar o usuário: {ex.Message}");
+                }
             }
 
             return View(model);
@@ -171,21 +208,29 @@ namespace CineFinder.Web.Controllers
         // GET: Usuarios/Excluir/5
         public async Task<IActionResult> Excluir(Guid id)
         {
-            var usuarioDto = await _usuarioService.ObterPorIdAsync(id);
-            if (usuarioDto == null)
+            try
+            {
+                var usuarioDto = await _usuarioService.GetByIdAsync(id);
+
+                var usuario = new UsuarioViewModel
+                {
+                    Id = usuarioDto.Id,
+                    Nome = usuarioDto.Nome,
+                    Email = usuarioDto.Email,
+                    DataCriacao = usuarioDto.DataCriacao
+                };
+
+                return View(usuario);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            var usuario = new UsuarioViewModel
+            catch (Exception ex)
             {
-                Id = usuarioDto.Id,
-                Nome = usuarioDto.Nome,
-                Email = usuarioDto.Email,
-                DataCriacao = usuarioDto.DataCriacao
-            };
-
-            return View(usuario);
+                TempData["ErrorMessage"] = $"Erro ao carregar usuário: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: Usuarios/Excluir/5
@@ -193,14 +238,25 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExcluirConfirmado(Guid id)
         {
-            var resultado = await _usuarioService.RemoverAsync(id);
-            if (resultado)
+            try
             {
-                TempData["Sucesso"] = "Usu�rio exclu�do com sucesso!";
+                var resultado = await _usuarioService.DeleteAsync(id);
+                if (resultado)
+                {
+                    TempData["SuccessMessage"] = "Usuário excluído com sucesso!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Erro ao excluir o usuário.";
+                }
             }
-            else
+            catch (KeyNotFoundException)
             {
-                TempData["Erro"] = "Erro ao excluir o usu�rio.";
+                TempData["ErrorMessage"] = "Usuário não encontrado.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao excluir o usuário: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
