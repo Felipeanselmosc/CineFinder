@@ -1,0 +1,59 @@
+@model CineFinder.ViewModels.FilmeBuscaViewModel
+@{
+    ViewData["Title"] = "Buscar Filmes";
+}
+<div class="card card-custom mb-4">
+    <div class="card-body">
+        <form asp-action="Buscar" method="get" class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="Termo" class="form-label"></label>
+                <input asp-for="Termo" class="form-control" placeholder="Digite o título..." />
+            </div>
+            <div class="col-md-3">
+                <label asp-for="GeneroId" class="form-label"></label>
+                <select asp-for="GeneroId" class="form-select">
+                    <option value="">Todos os gêneros</option>
+                    @foreach (var genero in Model.Generos)
+                    {
+                    <option value="@genero.Id">@genero.Nome</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label asp-for="Ano" class="form-label"></label>
+                <input asp-for="Ano" class="form-control" type="number" placeholder="2024" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-danger w-100">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@if (Model.Resultados != null && Model.Resultados.Any())
+{
+<h3 class="mb-4">Resultados (@Model.Resultados.Count filmes encontrados)</h3>
+<div class="row g-4">
+    @foreach (var filme in Model.Resultados)
+        {
+    <div class="col-md-3">
+        <div class="card card-custom h-100">
+            @if (!string.IsNullOrEmpty(filme.PosterUrl))
+                    {
+            <img src="@filme.PosterUrl" class="card-img-top" alt="@filme.Titulo" style="height: 400px; object-fit: cover;">
+                    }
+            <div class="card-body">
+                <h5 class="card-title">@filme.Titulo</h5>
+                <p class="text-muted small">@filme.DataLancamento?.Year</p>
+            </div>
+            <div class="card-footer">
+                <a asp-action="Detalhes" asp-route-id="@filme.Id" class="btn btn-outline-danger btn-sm w-100">
+                    Ver Detalhes
+                </a>
+            </div>
+        </div>
+    </div>
+        }
+</div>
+}

@@ -1,0 +1,28 @@
+@model CineFinder.ViewModels.FilmeViewModel
+@{
+    ViewData["Title"] = "Excluir Filme";
+}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir este filme?
+                </div>
+                <h4>@Model.Titulo</h4>
+                <p><strong>Diretor:</strong> @Model.Diretor</p>
+                <p><strong>Ano:</strong> @Model.DataLancamento?.Year</p>
+                <form asp-action="Excluir" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

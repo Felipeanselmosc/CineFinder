@@ -1,0 +1,85 @@
+@model CineFinder.ViewModels.UsuarioViewModel
+@{
+    ViewData["Title"] = Model.Nome;
+    var listas = ViewBag.Listas as List<CineFinder.ViewModels.ListaViewModel>;
+    var avaliacoes = ViewBag.Avaliacoes as List<CineFinder.ViewModels.AvaliacaoViewModel>;
+}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card card-custom">
+            <div class="card-body text-center">
+                <i class="fas fa-user-circle fa-5x text-danger mb-3"></i>
+                <h3>@Model.Nome</h3>
+                <p class="text-muted">@Model.Email</p>
+                <div class="row text-center mt-4">
+                    <div class="col-6">
+                        <h4 class="text-danger">@Model.TotalListas</h4>
+                        <small>Listas</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-danger">@Model.TotalAvaliacoes</h4>
+                        <small>Avaliações</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#listas">
+                    <i class="fas fa-list"></i> Listas
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#avaliacoes">
+                    <i class="fas fa-star"></i> Avaliações
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="listas">
+                @if (listas != null && listas.Any())
+                {
+                @foreach (var lista in listas)
+                    {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5><a asp-controller="Listas" asp-action="Detalhes" asp-route-id="@lista.Id">@lista.Nome</a></h5>
+                        <p class="text-muted">@lista.TotalFilmes filmes</p>
+                    </div>
+                </div>
+                    }
+                }
+                else
+                {
+                <div class="alert alert-info">Nenhuma lista criada ainda.</div>
+                }
+            </div>
+            <div class="tab-pane fade" id="avaliacoes">
+                @if (avaliacoes != null && avaliacoes.Any())
+                {
+                @foreach (var av in avaliacoes)
+                    {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6>@av.TituloFilme</h6>
+                        <div class="mb-2">
+                            @for (int i = 0; i < av.Nota; i++)
+                                    {
+                            <i class="fas fa-star text-warning"></i>
+                                    }
+                        </div>
+                        <p>@av.Comentario</p>
+                    </div>
+                </div>
+                    }
+                }
+                else
+                {
+                <div class="alert alert-info">Nenhuma avaliação feita ainda.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

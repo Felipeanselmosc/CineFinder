@@ -1,0 +1,38 @@
+@model IEnumerable<CineFinder.ViewModels.GeneroViewModel>
+
+    @{
+    ViewData["Title"] = "Gêneros";
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-tags text-danger"></i> Gêneros de Filmes
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Criar" class="btn btn-danger btn-lg">
+                <i class="fas fa-plus me-2"></i>Novo Gênero
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var genero in Model)
+    {
+        <div class="col-md-3">
+            <div class="card card-custom h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-tag fa-3x text-danger mb-3"></i>
+                    <h5 class="card-title">@genero.Nome</h5>
+                    <p class="card-text text-muted">@genero.TotalFilmes filmes</p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-controller="Filmes" asp-action="PorGenero" asp-route-generoId="@genero.Id" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="fas fa-film"></i> Ver Filmes
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    </div>

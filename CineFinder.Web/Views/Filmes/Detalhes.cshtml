@@ -1,0 +1,114 @@
+@model CineFinder.ViewModels.FilmeViewModel
+
+@{
+    ViewData["Title"] = Model.Titulo;
+    var avaliacoes = ViewBag.Avaliacoes as List<CineFinder.ViewModels.AvaliacaoViewModel>;
+}
+
+<div class="row">
+    <div class="col-md-4">
+        @if (!string.IsNullOrEmpty(Model.PosterUrl))
+        {
+        <img src="@Model.PosterUrl" class="img-fluid rounded shadow" alt="@Model.Titulo">
+        }
+        else
+        {
+        <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="height: 500px;">
+            <i class="fas fa-film fa-5x text-white opacity-25"></i>
+        </div>
+        }
+    </div>
+    <div class="col-md-8">
+        <h1 class="display-4 fw-bold">@Model.Titulo</h1>
+
+        <div class="mb-3">
+            @if (Model.NotaMedia.HasValue)
+            {
+            <span class="badge bg-danger fs-5">
+                <i class="fas fa-star"></i> @Model.NotaMedia.Value.ToString("N1")
+            </span>
+            <span class="text-muted">(@Model.TotalAvaliacoes avaliações)</span>
+            }
+        </div>
+
+        <div class="mb-4">
+            @if (Model.DataLancamento.HasValue)
+            {
+            <p><strong>Ano:</strong> @Model.DataLancamento.Value.Year</p>
+            }
+            @if (!string.IsNullOrEmpty(Model.Diretor))
+            {
+            <p><strong>Diretor:</strong> @Model.Diretor</p>
+            }
+            @if (Model.Duracao.HasValue)
+            {
+            <p><strong>Duração:</strong> @Model.Duracao min</p>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Descricao))
+        {
+        <div class="mb-4">
+            <h4>Sinopse</h4>
+            <p class="lead">@Model.Descricao</p>
+        </div>
+        }
+
+        <div class="mb-4">
+            <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+            <a asp-action="Excluir" asp-route-id="@Model.Id" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Excluir
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3><i class="fas fa-comments"></i> Avaliações</h3>
+            <a asp-controller="Avaliacoes" asp-action="Criar" asp-route-filmeId="@Model.Id" class="btn btn-danger">
+                <i class="fas fa-plus"></i> Adicionar Avaliação
+            </a>
+        </div>
+
+        @if (avaliacoes != null && avaliacoes.Any())
+        {
+        @foreach (var avaliacao in avaliacoes)
+            {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">@avaliacao.NomeUsuario</h5>
+                    <div>
+                        @for (int i = 0; i < avaliacao.Nota; i++)
+                                {
+                        <i class="fas fa-star text-warning"></i>
+                                }
+                        @for (int i = avaliacao.Nota; i < 5; i++)
+                                {
+                        <i class="far fa-star text-warning"></i>
+                                }
+                    </div>
+                </div>
+                <p class="card-text">@avaliacao.Comentario</p>
+                <small class="text-muted">@avaliacao.DataAvaliacao.ToString("dd/MM/yyyy HH:mm")</small>
+            </div>
+        </div>
+            }
+        }
+        else
+        {
+        <div class="alert alert-info">
+            Ainda não há avaliações para este filme. Seja o primeiro a avaliar!
+        </div>
+        }
+    </div>
+</div>

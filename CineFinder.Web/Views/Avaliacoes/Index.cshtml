@@ -1,0 +1,57 @@
+@model IEnumerable<CineFinder.ViewModels.AvaliacaoViewModel>
+
+    @{
+    ViewData["Title"] = "Avaliações";
+    }
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-star text-danger"></i> Avaliações de Filmes
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            @foreach (var avaliacao in Model)
+        {
+            <div class="card card-custom mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">
+                                <a asp-controller="Filmes" asp-action="Detalhes" asp-route-id="@avaliacao.FilmeId">
+                                    @avaliacao.TituloFilme
+                                </a>
+                            </h5>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-user"></i> @avaliacao.NomeUsuario •
+                                <i class="fas fa-calendar"></i> @avaliacao.DataAvaliacao.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                            <div class="mb-2">
+                                @for (int i = 0; i < avaliacao.Nota; i++)
+                                {
+                                <i class="fas fa-star text-warning"></i>
+                                }
+                                @for (int i = avaliacao.Nota; i < 5; i++)
+                                {
+                                <i class="far fa-star text-warning"></i>
+                                }
+                            </div>
+                            <p class="card-text">@avaliacao.Comentario</p>
+                        </div>
+                        <div>
+                            <a asp-action="Editar" asp-route-id="@avaliacao.Id" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a asp-action="Excluir" asp-route-id="@avaliacao.Id" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+    </div>

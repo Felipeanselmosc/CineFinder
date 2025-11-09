@@ -1,0 +1,128 @@
+@model CineFinder.ViewModels.ListaCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Lista";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-plus-circle"></i> Criar Nova Lista</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Criar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nome" class="form-label"></label>
+                        <input asp-for="Nome" class="form-control" placeholder="Ex: Favoritos, Para Assistir, Clássicos..." />
+                        <span asp-validation-for="Nome" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Descricao" class="form-label"></label>
+                        <textarea asp-for="Descricao" class="form-control" rows="4" placeholder="Descreva o propósito desta lista..."></textarea>
+                        <span asp-validation-for="Descricao" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsPublica" class="form-check-input" type="checkbox" role="switch" />
+                            <label asp-for="IsPublica" class="form-check-label">
+                                Tornar esta lista pública (outros usuários poderão visualizá-la)
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Listas privadas só podem ser vistas por você.
+                        </small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Após criar a lista, você poderá adicionar filmes a ela.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-save"></i> Criar Lista
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+EOF
+cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Listas/Criar.cshtml
+Saída
+
+@model CineFinder.ViewModels.ListaCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Lista";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-plus-circle"></i> Criar Nova Lista</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Criar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nome" class="form-label"></label>
+                        <input asp-for="Nome" class="form-control" placeholder="Ex: Favoritos, Para Assistir, Clássicos..." />
+                        <span asp-validation-for="Nome" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Descricao" class="form-label"></label>
+                        <textarea asp-for="Descricao" class="form-control" rows="4" placeholder="Descreva o propósito desta lista..."></textarea>
+                        <span asp-validation-for="Descricao" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="IsPublica" class="form-check-input" type="checkbox" role="switch" />
+                            <label asp-for="IsPublica" class="form-check-label">
+                                Tornar esta lista pública (outros usuários poderão visualizá-la)
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">
+                            Listas privadas só podem ser vistas por você.
+                        </small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        Após criar a lista, você poderá adicionar filmes a ela.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-save"></i> Criar Lista
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

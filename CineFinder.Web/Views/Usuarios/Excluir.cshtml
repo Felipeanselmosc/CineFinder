@@ -1,0 +1,132 @@
+@model CineFinder.ViewModels.UsuarioViewModel
+
+@{
+    ViewData["Title"] = "Excluir Usuário";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir este usuário?
+                </div>
+
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-5x text-danger mb-3"></i>
+                    <h4>@Model.Nome</h4>
+                    <p class="text-muted">@Model.Email</p>
+                    <p class="text-muted">
+                        Membro desde: @Model.DataCriacao.ToString("dd/MM/yyyy")
+                    </p>
+                </div>
+
+                <div class="row text-center mb-4">
+                    <div class="col-6">
+                        <div class="alert alert-info">
+                            <h4>@Model.TotalListas</h4>
+                            <small>Listas criadas</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="alert alert-info">
+                            <h4>@Model.TotalAvaliacoes</h4>
+                            <small>Avaliações feitas</small>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.TotalListas > 0 || Model.TotalAvaliacoes > 0)
+                {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção:</strong> Este usuário possui dados associados. Todos os registros (listas e avaliações) serão permanentemente removidos.
+                </div>
+                }
+
+                <form asp-action="Excluir" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Detalhes" asp-route-id="@Model.Id" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sim, Excluir Usuário
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+EOF
+cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Usuarios/Excluir.cshtml
+Saída
+
+@model CineFinder.ViewModels.UsuarioViewModel
+
+@{
+    ViewData["Title"] = "Excluir Usuário";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir este usuário?
+                </div>
+
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-5x text-danger mb-3"></i>
+                    <h4>@Model.Nome</h4>
+                    <p class="text-muted">@Model.Email</p>
+                    <p class="text-muted">
+                        Membro desde: @Model.DataCriacao.ToString("dd/MM/yyyy")
+                    </p>
+                </div>
+
+                <div class="row text-center mb-4">
+                    <div class="col-6">
+                        <div class="alert alert-info">
+                            <h4>@Model.TotalListas</h4>
+                            <small>Listas criadas</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="alert alert-info">
+                            <h4>@Model.TotalAvaliacoes</h4>
+                            <small>Avaliações feitas</small>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.TotalListas > 0 || Model.TotalAvaliacoes > 0)
+                {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atenção:</strong> Este usuário possui dados associados. Todos os registros (listas e avaliações) serão permanentemente removidos.
+                </div>
+                }
+
+                <form asp-action="Excluir" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Detalhes" asp-route-id="@Model.Id" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Sim, Excluir Usuário
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

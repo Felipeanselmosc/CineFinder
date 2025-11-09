@@ -1,0 +1,53 @@
+@model IEnumerable<CineFinder.ViewModels.UsuarioViewModel>
+
+    @{
+    ViewData["Title"] = "Usuários";
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-users text-danger"></i> Usuários
+            </h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Criar" class="btn btn-danger btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Novo Usuário
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var usuario in Model)
+    {
+        <div class="col-md-4">
+            <div class="card card-custom h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-user-circle text-danger"></i> @usuario.Nome
+                    </h5>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-envelope"></i> @usuario.Email
+                        </small>
+                    </p>
+                    <div class="row text-center mt-3">
+                        <div class="col-6">
+                            <h4 class="text-danger">@usuario.TotalListas</h4>
+                            <small class="text-muted">Listas</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-danger">@usuario.TotalAvaliacoes</h4>
+                            <small class="text-muted">Avaliações</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-action="Detalhes" asp-route-id="@usuario.Id" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="fas fa-eye"></i> Ver Perfil
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    </div>

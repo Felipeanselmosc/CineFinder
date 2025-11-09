@@ -1,0 +1,281 @@
+﻿@model CineFinder.Controllers.HomeViewModel
+
+@{
+    ViewData["Title"] = "Início";
+}
+
+<!-- Hero Section -->
+<div class="jumbotron bg-gradient text-white rounded-3 mb-5 p-5" style="background: linear-gradient(135deg, #e50914 0%, #b20710 100%);">
+    <div class="container text-center py-5">
+        <h1 class="display-3 fw-bold mb-4">
+            <i class="fas fa-film me-3"></i>
+            Bem-vindo ao CineFinder
+        </h1>
+        <p class="lead fs-4 mb-4">
+            Descubra, avalie e organize seus filmes favoritos.
+            A melhor plataforma para cinéfilos!
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a asp-controller="Filmes" asp-action="Index" class="btn btn-light btn-lg px-4">
+                <i class="fas fa-film me-2"></i>Explorar Filmes
+            </a>
+            <a asp-controller="Filmes" asp-action="Buscar" class="btn btn-outline-light btn-lg px-4">
+                <i class="fas fa-search me-2"></i>Buscar
+            </a>
+            <a asp-controller="Usuarios" asp-action="Create" class="btn btn-outline-light btn-lg px-4">
+                <i class="fas fa-user-plus me-2"></i>Cadastre-se
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filmes em Destaque -->
+@if (Model.FilmesDestaque.Any())
+{
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">
+                <i class="fas fa-star text-warning me-2"></i>
+                Filmes em Destaque
+            </h2>
+            <a asp-controller="Filmes" asp-action="Index" class="btn btn-outline-primary">
+                Ver Todos <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            @foreach (var filme in Model.FilmesDestaque.Take(8))
+            {
+                <div class="col">
+                    <div class="card card-custom h-100 shadow-sm filme-card">
+                        @if (!string.IsNullOrEmpty(filme.PosterUrl))
+                        {
+                            <img src="@filme.PosterUrl"
+                                 class="card-img-top"
+                                 alt="@filme.Titulo"
+                                 style="height: 350px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                 style="height: 350px;">
+                                <i class="fas fa-film fa-4x text-white-50"></i>
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold mb-2">@filme.Titulo</h5>
+
+                            <div class="mb-2">
+                                @if (filme.NotaMedia.HasValue)
+                                {
+                                    <span class="badge badge-custom">
+                                        <i class="fas fa-star"></i>
+                                        @filme.NotaMedia.Value.ToString("N1")
+                                    </span>
+                                }
+
+                                @if (filme.Duracao.HasValue)
+                                {
+                                    <span class="badge bg-secondary">
+                                        @filme.Duracao min
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="mt-auto">
+                                <a asp-controller="Filmes" asp-action="Details" asp-route-id="@filme.Id"
+                                   class="btn btn-sm btn-primary-custom w-100">
+                                    Ver Detalhes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<!-- Gêneros Populares -->
+@if (Model.GenerosPopulares.Any())
+{
+    <section class="mb-5">
+        <h2 class="fw-bold mb-4">
+            <i class="fas fa-tags text-primary me-2"></i>
+            Explorar por Gênero
+        </h2>
+
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+            @foreach (var genero in Model.GenerosPopulares)
+            {
+                <div class="col">
+                    <a asp-controller="Filmes" asp-action="PorGenero" asp-route-generoId="@genero.Id"
+                       class="btn btn-outline-primary w-100 py-3 genero-btn">
+                        <i class="fas fa-tag me-2"></i>
+                        @genero.Nome
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<!-- Features / Funcionalidades -->
+<section class="mb-5">
+    <h2 class="fw-bold mb-4 text-center">
+        <i class="fas fa-rocket text-danger me-2"></i>
+        O que você pode fazer
+    </h2>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="col">
+            <div class="card card-custom h-100 text-center shadow-sm">
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-search fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold">Descubra Filmes</h4>
+                    <p class="text-muted">
+                        Busque por título, gênero, diretor ou ano.
+                        Encontre exatamente o que você procura!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card-custom h-100 text-center shadow-sm">
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-star fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="fw-bold">Avalie e Comente</h4>
+                    <p class="text-muted">
+                        Compartilhe sua opinião! Dê notas e escreva
+                        comentários sobre os filmes que assistiu.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card card-custom h-100 text-center shadow-sm">
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-list fa-3x text-success"></i>
+                    </div>
+                    <h4 class="fw-bold">Crie Listas</h4>
+                    <p class="text-muted">
+                        Organize seus filmes em listas personalizadas.
+                        Compartilhe com amigos ou mantenha privadas!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Listas Públicas -->
+@if (Model.ListasPublicas.Any())
+{
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">
+                <i class="fas fa-list-ul text-success me-2"></i>
+                Listas Públicas
+            </h2>
+            <a asp-controller="Listas" asp-action="Index" class="btn btn-outline-primary">
+                Ver Todas <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var lista in Model.ListasPublicas)
+            {
+                <div class="col">
+                    <div class="card card-custom h-100 shadow-sm lista-card">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">
+                                <i class="fas fa-list me-2 text-primary"></i>
+                                @lista.Nome
+                            </h5>
+
+                            <p class="card-text text-muted small mb-3">
+                                @if (!string.IsNullOrEmpty(lista.Descricao))
+                                {
+                                    @(lista.Descricao.Length > 100 ? lista.Descricao.Substring(0, 100) + "..." : lista.Descricao)
+                                }
+                            </p>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>
+                                    @lista.NomeUsuario
+                                </small>
+                                <span class="badge bg-primary">
+                                    @lista.TotalFilmes filme(s)
+                                </span>
+                            </div>
+
+                            <a asp-controller="Listas" asp-action="Details" asp-route-id="@lista.Id"
+                               class="btn btn-sm btn-outline-primary w-100">
+                                Ver Lista
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+<!-- Call to Action -->
+<section class="text-center py-5 my-5 bg-light rounded-3">
+    <div class="container">
+        <h2 class="fw-bold mb-3">Pronto para começar?</h2>
+        <p class="lead text-muted mb-4">
+            Junte-se à nossa comunidade de cinéfilos e comece a descobrir filmes incríveis!
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a asp-controller="Usuarios" asp-action="Create" class="btn btn-primary-custom btn-lg px-5">
+                <i class="fas fa-user-plus me-2"></i>Criar Conta Grátis
+            </a>
+            <a asp-controller="Filmes" asp-action="Index" class="btn btn-outline-secondary btn-lg px-5">
+                <i class="fas fa-film me-2"></i>Explorar Agora
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Animação dos cards ao carregar
+            $('.filme-card, .lista-card, .genero-btn').each(function(index) {
+                $(this).hide().delay(index * 30).fadeIn(400);
+            });
+
+            // Efeito hover nos cards
+            $('.card-custom').hover(
+                function() {
+                    $(this).addClass('shadow-lg');
+                },
+                function() {
+                    $(this).removeClass('shadow-lg').addClass('shadow-sm');
+                }
+            );
+
+            // Scroll suave para seções
+            $('a[href^="#"]').on('click', function(e) {
+                e.preventDefault();
+                var target = $(this.getAttribute('href'));
+                if (target.length) {
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 100
+                    }, 1000);
+                }
+            });
+        });
+    </script>
+}

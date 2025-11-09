@@ -1,0 +1,187 @@
+cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Criar.cshtml << 'EOF'
+@model CineFinder.ViewModels.AvaliacaoCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Avaliação";
+    var filmes = ViewBag.Filmes as IEnumerable<dynamic>;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-star"></i> Avaliar Filme</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Criar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FilmeId" class="form-label"></label>
+                        <select asp-for="FilmeId" class="form-select">
+                            <option value="">Selecione um filme</option>
+                            @if (filmes != null)
+                            {
+                            @foreach (var filme in filmes)
+                                {
+                            <option value="@filme.Id">@filme.Titulo</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="FilmeId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nota" class="form-label"></label>
+                        <div class="rating-input">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                            <input type="radio" asp-for="Nota" value="@i" id="nota-@i" />
+                            <label for="nota-@i"><i class="far fa-star"></i></label>
+                            }
+                        </div>
+                        <span asp-validation-for="Nota" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Comentario" class="form-label"></label>
+                        <textarea asp-for="Comentario" class="form-control" rows="5" placeholder="Escreva sua opinião sobre o filme..."></textarea>
+                        <span asp-validation-for="Comentario" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-save"></i> Salvar Avaliação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <style>
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            font-size: 2rem;
+        }
+
+            .rating-input input {
+                display: none;
+            }
+
+            .rating-input label {
+                cursor: pointer;
+                color: #ddd;
+                transition: color 0.2s;
+            }
+
+                .rating-input label:hover,
+                .rating-input label:hover ~ label,
+                .rating-input input:checked ~ label {
+                    color: #ffc107;
+                }
+    </style>
+}
+EOF
+cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Criar.cshtml
+Saída
+
+@model CineFinder.ViewModels.AvaliacaoCreateViewModel
+
+@{
+    ViewData["Title"] = "Nova Avaliação";
+    var filmes = ViewBag.Filmes as IEnumerable<dynamic>;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-custom">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-star"></i> Avaliar Filme</h3>
+            </div>
+            <div class="card-body">
+                <form asp-action="Criar" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="FilmeId" class="form-label"></label>
+                        <select asp-for="FilmeId" class="form-select">
+                            <option value="">Selecione um filme</option>
+                            @if (filmes != null)
+                            {
+                            @foreach (var filme in filmes)
+                                {
+                            <option value="@filme.Id">@filme.Titulo</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="FilmeId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Nota" class="form-label"></label>
+                        <div class="rating-input">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                            <input type="radio" asp-for="Nota" value="@i" id="nota-@i" />
+                            <label for="nota-@i"><i class="far fa-star"></i></label>
+                            }
+                        </div>
+                        <span asp-validation-for="Nota" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Comentario" class="form-label"></label>
+                        <textarea asp-for="Comentario" class="form-control" rows="5" placeholder="Escreva sua opinião sobre o filme..."></textarea>
+                        <span asp-validation-for="Comentario" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-save"></i> Salvar Avaliação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <style>
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            font-size: 2rem;
+        }
+
+            .rating-input input {
+                display: none;
+            }
+
+            .rating-input label {
+                cursor: pointer;
+                color: #ddd;
+                transition: color 0.2s;
+            }
+
+                .rating-input label:hover,
+                .rating-input label:hover ~ label,
+                .rating-input input:checked ~ label {
+                    color: #ffc107;
+                }
+    </style>
+}
