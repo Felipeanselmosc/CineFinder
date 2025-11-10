@@ -11,5 +11,17 @@ namespace CineFinder.Domain.Interfaces
         Task<IEnumerable<Avaliacao>> GetByUsuarioIdAsync(Guid usuarioId);
         Task<decimal> GetNotaMediaFilmeAsync(Guid filmeId);
         Task<bool> UsuarioJaAvaliouAsync(Guid usuarioId, Guid filmeId);
+        Task<(IEnumerable<Avaliacao> avaliacoes, int totalCount)> SearchWithFiltersAsync(
+            Guid? filmeId = null,
+            Guid? usuarioId = null,
+            int? notaMinima = null,
+            int? notaMaxima = null,
+            DateTime? dataAvaliacaoInicio = null,
+            DateTime? dataAvaliacaoFim = null,
+            bool? temComentario = null,
+            string? orderBy = null,
+            bool orderDescending = false,
+            int pageNumber = 1,
+            int pageSize = 10);
     }
 }

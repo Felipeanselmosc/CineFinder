@@ -1,6 +1,8 @@
-﻿using CineFinder.Application.DTOs.Filme;
+﻿using CineFinder.Application.DTOs.Avaliacao;
+using CineFinder.Application.DTOs.Filme;
 using CineFinder.Application.DTOs.Usuario;
 using CineFinder.Application.Interfaces;
+using CineFinder.Application.Models;
 using CineFinder.Domain.Entities;
 using CineFinder.Domain.Interfaces;
 using System;
@@ -106,7 +108,7 @@ namespace CineFinder.Application.Services
         public async Task<IEnumerable<AvaliacaoSimplificadaDto>> GetByFilmeAsync(Guid filmeId)
         {
             var avaliacoes = await _avaliacaoRepository.GetByFilmeIdAsync(filmeId);
-            return avaliacoes.Select(a => new AvaliacaoSimplificadaDto
+            return avaliacoes.Select(a => new CineFinder.Application.DTOs.Avaliacao.AvaliacaoSimplificadaDto
             {
                 Id = a.Id,
                 Nota = a.Nota,
@@ -114,6 +116,58 @@ namespace CineFinder.Application.Services
                 DataAvaliacao = a.DataAvaliacao,
                 NomeUsuario = a.Usuario?.Nome ?? "Usuário"
             });
+        }
+
+        public async Task<AvaliacaoDto> GetByIdAsync(Guid id)
+        {
+            var avaliacao = await _avaliacaoRepository.GetByIdAsync(id);
+            if (avaliacao == null)
+                throw new KeyNotFoundException("Avaliação não encontrada");
+
+            return await MapToDtoCompleto(avaliacao);
+        }
+
+        public async Task<IEnumerable<AvaliacaoDto>> GetAllAsync()
+        {
+            var avaliacoes = await _avaliacaoRepository.GetAllAsync();
+            var result = new List<AvaliacaoDto>();
+
+            foreach (var avaliacao in avaliacoes)
+            {
+                result.Add(await MapToDtoCompleto(avaliacao));
+            }
+
+            return result;
+        }
+
+        public async Task<PagedResult<AvaliacaoDto>> SearchAsync(AvaliacaoSearchParameters parameters)
+        {
+            var (avaliacoes, totalCount) = await _avaliacaoRepository.SearchWithFiltersAsync(
+                filmeId: parameters.FilmeId,
+                usuarioId: parameters.UsuarioId,
+                notaMinima: parameters.NotaMinima,
+                notaMaxima: parameters.NotaMaxima,
+                dataAvaliacaoInicio: parameters.DataAvaliacaoInicio,
+                dataAvaliacaoFim: parameters.DataAvaliacaoFim,
+                temComentario: parameters.TemComentario,
+                orderBy: parameters.OrderBy,
+                orderDescending: parameters.OrderDescending,
+                pageNumber: parameters.PageNumber,
+                pageSize: parameters.PageSize
+            );
+
+            var avaliacoesDto = new List<AvaliacaoDto>();
+            foreach (var avaliacao in avaliacoes)
+            {
+                avaliacoesDto.Add(await MapToDtoCompleto(avaliacao));
+            }
+
+            return new PagedResult<AvaliacaoDto>(
+                avaliacoesDto,
+                totalCount,
+                parameters.PageNumber,
+                parameters.PageSize
+            );
         }
 
         private async Task AtualizarNotaMediaFilme(Guid filmeId)
@@ -139,17 +193,18 @@ namespace CineFinder.Application.Services
                 Nota = avaliacao.Nota,
                 Comentario = avaliacao.Comentario,
                 DataAvaliacao = avaliacao.DataAvaliacao,
-                Usuario = new UsuarioDto
+                Usuario = new UsuarioAvaliacaoDto
                 {
                     Id = usuario.Id,
                     Nome = usuario.Nome,
                     Email = usuario.Email
                 },
-                Filme = new FilmeDto
+                Filme = new FilmeAvaliacaoDto
                 {
                     Id = filme.Id,
                     Titulo = filme.Titulo,
-                    PosterUrl = filme.PosterUrl
+                    PosterUrl = filme.PosterUrl,
+                    NotaMedia = filme.NotaMedia
                 }
             };
         }

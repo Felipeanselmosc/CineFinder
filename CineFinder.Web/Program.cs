@@ -1,28 +1,28 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore;
-using CineFinder.Infrastructure.Repositories;
 using CineFinder.Application.Interfaces;
 using CineFinder.Application.Services;
 using CineFinder.Domain.Interfaces;
 using CineFinder.Infrastructure.Data.Context;
+using CineFinder.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicionar serviços MVC
+// MVC
 builder.Services.AddControllersWithViews();
 
-// Adicionar serviços de API (Controllers de API)
+// API
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configurar DbContext
+// DbContext
 builder.Services.AddDbContext<CineFinderDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configurar CORS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -33,14 +33,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Registrar Repositories
+// Repositories
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IFilmeRepository, FilmeRepository>();
 builder.Services.AddScoped<IGeneroRepository, GeneroRepository>();
 builder.Services.AddScoped<IListaRepository, ListaRepository>();
 builder.Services.AddScoped<IAvaliacaoRepository, AvaliacaoRepository>();
 
-// Registrar Services
+// Services
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IFilmeService, FilmeService>();
 builder.Services.AddScoped<IGeneroService, GeneroService>();
@@ -49,7 +49,7 @@ builder.Services.AddScoped<IAvaliacaoService, AvaliacaoService>();
 
 var app = builder.Build();
 
-// Configurar pipeline HTTP
+// Pipeline HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -70,30 +70,43 @@ app.UseRouting();
 app.UseCors("AllowAll");
 app.UseAuthorization();
 
-// Rotas MVC
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// Rota personalizada para busca de filmes
+// Rotas personalizadas
 app.MapControllerRoute(
     name: "filmes-busca",
     pattern: "Filmes/Buscar/{termo?}",
     defaults: new { controller = "Filmes", action = "Buscar" });
 
-// Rota personalizada para filmes por gênero
 app.MapControllerRoute(
     name: "filmes-genero",
     pattern: "Filmes/Genero/{generoId}",
     defaults: new { controller = "Filmes", action = "PorGenero" });
 
-// Rota personalizada para listas de usuário
+app.MapControllerRoute(
+    name: "filme-detalhes",
+    pattern: "Filme/{id}/Detalhes",
+    defaults: new { controller = "Filmes", action = "Detalhes" });
+
 app.MapControllerRoute(
     name: "usuario-listas",
     pattern: "Usuario/{usuarioId}/Listas",
     defaults: new { controller = "Listas", action = "MinhasListas" });
 
-// Controllers de API (mantém as rotas /api/...)
+app.MapControllerRoute(
+    name: "filme-avaliacoes",
+    pattern: "Filme/{filmeId}/Avaliacoes",
+    defaults: new { controller = "Avaliacoes", action = "PorFilme" });
+
+app.MapControllerRoute(
+    name: "generos-populares",
+    pattern: "Generos/Populares",
+    defaults: new { controller = "Generos", action = "Populares" });
+
+// Rota padrÃ£o MVC
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Controllers de API
 app.MapControllers();
 
 app.Run();

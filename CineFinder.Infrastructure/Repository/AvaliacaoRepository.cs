@@ -53,5 +53,99 @@ namespace CineFinder.Infrastructure.Repositories
             return await _context.Avaliacoes
                 .AnyAsync(a => a.UsuarioId == usuarioId && a.FilmeId == filmeId);
         }
+
+        public async Task<(IEnumerable<Avaliacao> avaliacoes, int totalCount)> SearchWithFiltersAsync(
+            Guid? filmeId = null,
+            Guid? usuarioId = null,
+            int? notaMinima = null,
+            int? notaMaxima = null,
+            DateTime? dataAvaliacaoInicio = null,
+            DateTime? dataAvaliacaoFim = null,
+            bool? temComentario = null,
+            string? orderBy = null,
+            bool orderDescending = false,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            var query = _context.Avaliacoes
+                .Include(a => a.Usuario)
+                .Include(a => a.Filme)
+                .AsQueryable();
+
+            // Aplicar filtros
+            if (filmeId.HasValue)
+            {
+                query = query.Where(a => a.FilmeId == filmeId.Value);
+            }
+
+            if (usuarioId.HasValue)
+            {
+                query = query.Where(a => a.UsuarioId == usuarioId.Value);
+            }
+
+            if (notaMinima.HasValue)
+            {
+                query = query.Where(a => a.Nota >= notaMinima.Value);
+            }
+
+            if (notaMaxima.HasValue)
+            {
+                query = query.Where(a => a.Nota <= notaMaxima.Value);
+            }
+
+            if (dataAvaliacaoInicio.HasValue)
+            {
+                query = query.Where(a => a.DataAvaliacao >= dataAvaliacaoInicio.Value);
+            }
+
+            if (dataAvaliacaoFim.HasValue)
+            {
+                query = query.Where(a => a.DataAvaliacao <= dataAvaliacaoFim.Value);
+            }
+
+            if (temComentario.HasValue)
+            {
+                if (temComentario.Value)
+                {
+                    query = query.Where(a => !string.IsNullOrEmpty(a.Comentario));
+                }
+                else
+                {
+                    query = query.Where(a => string.IsNullOrEmpty(a.Comentario));
+                }
+            }
+
+            // Contar total antes da paginação
+            var totalCount = await query.CountAsync();
+
+            // Aplicar ordenação
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                switch (orderBy.ToLower())
+                {
+                    case "nota":
+                        query = orderDescending ? query.OrderByDescending(a => a.Nota) : query.OrderBy(a => a.Nota);
+                        break;
+                    case "data":
+                        query = orderDescending ? query.OrderByDescending(a => a.DataAvaliacao) : query.OrderBy(a => a.DataAvaliacao);
+                        break;
+                    default:
+                        query = query.OrderByDescending(a => a.DataAvaliacao);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(a => a.DataAvaliacao);
+            }
+
+            // Aplicar paginação
+            var avaliacoes = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (avaliacoes, totalCount);
+        }
     }
 }

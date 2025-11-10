@@ -1,15 +1,14 @@
-cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Editar.cshtml << 'EOF'
 @model CineFinder.ViewModels.AvaliacaoEditViewModel
 
 @{
-    ViewData["Title"] = "Editar Avaliação";
+    ViewData["Title"] = "Editar AvaliaÃ§Ã£o";
 }
 
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card card-custom">
             <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-edit"></i> Editar Avaliação</h3>
+                <h3 class="mb-0"><i class="fas fa-edit"></i> Editar AvaliaÃ§Ã£o</h3>
             </div>
             <div class="card-body">
                 <form asp-action="Editar" method="post">
@@ -27,8 +26,8 @@ cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Editar.cshtml
                         <div class="rating-input">
                             @for (int i = 1; i <= 5; i++)
                             {
-                            <input type="radio" asp-for="Nota" value="@i" id="nota-@i" />
-                            <label for="nota-@i"><i class="far fa-star"></i></label>
+                                <input type="radio" asp-for="Nota" value="@i" id="nota-@i" />
+                                <label for="nota-@i"><i class="far fa-star"></i></label>
                             }
                         </div>
                         <span asp-validation-for="Nota" class="text-danger"></span>
@@ -45,7 +44,7 @@ cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Editar.cshtml
                             <i class="fas fa-times"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-save"></i> Salvar Alterações
+                            <i class="fas fa-save"></i> Salvar AlteraÃ§Ãµes
                         </button>
                     </div>
                 </form>
@@ -64,106 +63,20 @@ cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Editar.cshtml
             font-size: 2rem;
         }
 
-            .rating-input input {
-                display: none;
-            }
-
-            .rating-input label {
-                cursor: pointer;
-                color: #ddd;
-                transition: color 0.2s;
-            }
-
-                .rating-input label:hover,
-                .rating-input label:hover ~ label,
-                .rating-input input:checked ~ label {
-                    color: #ffc107;
-                }
-    </style>
-}
-EOF
-cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Editar.cshtml
-Saída
-
-@model CineFinder.ViewModels.AvaliacaoEditViewModel
-
-@{
-    ViewData["Title"] = "Editar Avaliação";
-}
-
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card card-custom">
-            <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-edit"></i> Editar Avaliação</h3>
-            </div>
-            <div class="card-body">
-                <form asp-action="Editar" method="post">
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="FilmeId" />
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Filme</label>
-                        <input type="text" class="form-control" value="@Model.TituloFilme" readonly />
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Nota" class="form-label"></label>
-                        <div class="rating-input">
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                            <input type="radio" asp-for="Nota" value="@i" id="nota-@i" />
-                            <label for="nota-@i"><i class="far fa-star"></i></label>
-                            }
-                        </div>
-                        <span asp-validation-for="Nota" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Comentario" class="form-label"></label>
-                        <textarea asp-for="Comentario" class="form-control" rows="5"></textarea>
-                        <span asp-validation-for="Comentario" class="text-danger"></span>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-save"></i> Salvar Alterações
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <style>
-        .rating-input {
-            display: flex;
-            flex-direction: row-reverse;
-            justify-content: flex-end;
-            font-size: 2rem;
+        .rating-input input {
+            display: none;
         }
 
-            .rating-input input {
-                display: none;
-            }
+        .rating-input label {
+            cursor: pointer;
+            color: #ddd;
+            transition: color 0.2s;
+        }
 
-            .rating-input label {
-                cursor: pointer;
-                color: #ddd;
-                transition: color 0.2s;
-            }
-
-                .rating-input label:hover,
-                .rating-input label:hover ~ label,
-                .rating-input input:checked ~ label {
-                    color: #ffc107;
-                }
+        .rating-input label:hover,
+        .rating-input label:hover ~ label,
+        .rating-input input:checked ~ label {
+            color: #ffc107;
+        }
     </style>
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using CineFinder.Application.DTOs.Avaliacao;
 
 namespace CineFinder.Application.DTOs.Filme
 {
@@ -113,17 +114,5 @@ namespace CineFinder.Application.DTOs.Filme
     {
         public Guid Id { get; set; }
         public string Nome { get; set; }
-    }
-
-    /// <summary>
-    /// DTO simplificado de Avaliação (usado dentro de FilmeDetalhadoDto)
-    /// </summary>
-    public class AvaliacaoSimplificadaDto
-    {
-        public Guid Id { get; set; }
-        public int Nota { get; set; }
-        public string Comentario { get; set; }
-        public DateTime DataAvaliacao { get; set; }
-        public string NomeUsuario { get; set; }
     }
 }

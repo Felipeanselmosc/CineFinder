@@ -2,6 +2,10 @@
 using CineFinder.Domain.Interfaces;
 using CineFinder.Infrastructure.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CineFinder.Infrastructure.Repositories
 {
@@ -37,6 +41,59 @@ namespace CineFinder.Infrastructure.Repositories
                 .OrderByDescending(g => g.FilmeGeneros.Count)
                 .Take(10)
                 .ToListAsync();
+        }
+
+        public async Task<(IEnumerable<Genero> generos, int totalCount)> SearchWithFiltersAsync(
+            string? nome = null,
+            bool? ativo = null,
+            string? orderBy = null,
+            bool orderDescending = false,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            var query = _context.Generos
+                .Include(g => g.FilmeGeneros)
+                .AsQueryable();
+
+            // Aplicar filtros
+            if (!string.IsNullOrWhiteSpace(nome))
+            {
+                query = query.Where(g => g.Nome.Contains(nome));
+            }
+
+            // Contar total antes da paginação
+            var totalCount = await query.CountAsync();
+
+            // Aplicar ordenação
+            if (!string.IsNullOrWhiteSpace(orderBy))
+            {
+                switch (orderBy.ToLower())
+                {
+                    case "nome":
+                        query = orderDescending ? query.OrderByDescending(g => g.Nome) : query.OrderBy(g => g.Nome);
+                        break;
+                    case "filmes":
+                        query = orderDescending 
+                            ? query.OrderByDescending(g => g.FilmeGeneros.Count) 
+                            : query.OrderBy(g => g.FilmeGeneros.Count);
+                        break;
+                    default:
+                        query = query.OrderBy(g => g.Nome);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderBy(g => g.Nome);
+            }
+
+            // Aplicar paginação
+            var generos = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (generos, totalCount);
         }
     }
 }

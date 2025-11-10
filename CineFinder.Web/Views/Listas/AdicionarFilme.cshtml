@@ -1,8 +1,9 @@
+@using CineFinder.ViewModels
 @{
     ViewData["Title"] = "Adicionar Filme à Lista";
     var listaId = ViewBag.ListaId as Guid?;
     var listaNome = ViewBag.ListaNome as string;
-    var filmes = ViewBag.Filmes as List<CineFinder.ViewModels.FilmeViewModel>;
+    var filmes = ViewBag.Filmes as List<FilmeViewModel>;
 }
 
 <div class="row mb-4">
@@ -22,119 +23,76 @@
 
 @if (filmes != null && filmes.Any())
 {
-<div class="row g-4">
-    @foreach (var filme in filmes)
+    <div class="row g-4">
+        @foreach (var filme in filmes)
         {
-    <div class="col-md-3">
-        <div class="card card-custom h-100">
-            @if (!string.IsNullOrEmpty(filme.PosterUrl))
+            <div class="col-md-3">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(filme.PosterUrl))
                     {
-            <img src="@filme.PosterUrl" class="card-img-top" alt="@filme.Titulo" style="height: 300px; object-fit: cover;">
+                        <img src="@filme.PosterUrl"
+                             class="card-img-top"
+                             alt="@filme.Titulo"
+                             style="height: 300px; object-fit: cover;" />
                     }
                     else
                     {
-            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
-                <i class="fas fa-film fa-4x text-white opacity-25"></i>
-            </div>
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                             style="height: 300px;">
+                            <i class="fas fa-film fa-4x text-white opacity-25"></i>
+                        </div>
                     }
-            <div class="card-body">
-                <h6 class="card-title">@filme.Titulo</h6>
-                <p class="card-text text-muted small">
-                    @if (filme.DataLancamento.HasValue)
+
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">@filme.Titulo</h6>
+
+                        @if (!string.IsNullOrWhiteSpace(filme.Descricao))
+                        {
+                            <p class="card-text text-muted small">
+                                @filme.Descricao
+                            </p>
+                        }
+
+                        <p class="card-text text-muted small">
+                            @if (filme.DataLancamento.HasValue)
                             {
-                    @filme.DataLancamento.Value.Year
+                                <span>Lançamento: @filme.DataLancamento.Value.ToString("dd/MM/yyyy")</span>
+                    
+                                <br />
                             }
-                </p>
+
+                            @if (filme.Duracao.HasValue)
+                            {
+                                <span>Duração: @filme.Duracao min</span>
+                    
+                                <br />
+                            }
+
+                            @if (filme.NotaMedia.HasValue)
+                            {
+                                <span>Nota média: @filme.NotaMedia</span>
+                            }
+                        </p>
+
+                        <div class="mt-auto">
+                            <form asp-action="AdicionarFilme" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="listaId" value="@listaId" />
+                                <input type="hidden" name="filmeId" value="@filme.Id" />
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-plus"></i> Adicionar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-footer bg-transparent">
-                <form asp-action="AdicionarFilme" method="post">
-                    <input type="hidden" name="listaId" value="@listaId" />
-                    <input type="hidden" name="filmeId" value="@filme.Id" />
-                    <button type="submit" class="btn btn-success btn-sm w-100">
-                        <i class="fas fa-plus"></i> Adicionar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
         }
-</div>
+    </div>
 }
 else
 {
-<div class="alert alert-info">
-    <i class="fas fa-info-circle"></i> Não há filmes disponíveis para adicionar.
-</div>
-}
-EOF
-cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Listas/AdicionarFilme.cshtml
-Saída
-
-@{
-    ViewData["Title"] = "Adicionar Filme à Lista";
-    var listaId = ViewBag.ListaId as Guid?;
-    var listaNome = ViewBag.ListaNome as string;
-    var filmes = ViewBag.Filmes as List<CineFinder.ViewModels.FilmeViewModel>;
-}
-
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="display-5 fw-bold">
-            <i class="fas fa-plus-circle text-danger"></i> Adicionar Filme
-        </h1>
-        <p class="lead text-muted">Lista: <strong>@listaNome</strong></p>
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Não há filmes disponíveis para adicionar.
     </div>
-</div>
-
-<div class="mb-4">
-    <a asp-action="Detalhes" asp-route-id="@listaId" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Voltar para Lista
-    </a>
-</div>
-
-@if (filmes != null && filmes.Any())
-{
-<div class="row g-4">
-    @foreach (var filme in filmes)
-        {
-    <div class="col-md-3">
-        <div class="card card-custom h-100">
-            @if (!string.IsNullOrEmpty(filme.PosterUrl))
-                    {
-            <img src="@filme.PosterUrl" class="card-img-top" alt="@filme.Titulo" style="height: 300px; object-fit: cover;">
-                    }
-                    else
-                    {
-            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 300px;">
-                <i class="fas fa-film fa-4x text-white opacity-25"></i>
-            </div>
-                    }
-            <div class="card-body">
-                <h6 class="card-title">@filme.Titulo</h6>
-                <p class="card-text text-muted small">
-                    @if (filme.DataLancamento.HasValue)
-                            {
-                    @filme.DataLancamento.Value.Year
-                            }
-                </p>
-            </div>
-            <div class="card-footer bg-transparent">
-                <form asp-action="AdicionarFilme" method="post">
-                    <input type="hidden" name="listaId" value="@listaId" />
-                    <input type="hidden" name="filmeId" value="@filme.Id" />
-                    <button type="submit" class="btn btn-success btn-sm w-100">
-                        <i class="fas fa-plus"></i> Adicionar
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-        }
-</div>
-}
-else
-{
-<div class="alert alert-info">
-    <i class="fas fa-info-circle"></i> Não há filmes disponíveis para adicionar.
-</div>
 }

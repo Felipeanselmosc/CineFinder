@@ -288,14 +288,19 @@ namespace CineFinder.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExcluirConfirmado(Guid id)
         {
-            await _filmeService.DeleteAsync(id);
-            // Removido - DeleteAsync não retorna bool
+            try
             {
-                TempData["Sucesso"] = "Filme exclu�do com sucesso!";
+                await _filmeService.DeleteAsync(id);
+                TempData["SuccessMessage"] = "Filme excluído com sucesso!";
             }
-            else
+            catch (KeyNotFoundException)
             {
-                TempData["Erro"] = "Erro ao excluir o filme.";
+                TempData["ErrorMessage"] = "Filme não encontrado.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Erro ao excluir o filme: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));

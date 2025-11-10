@@ -1,8 +1,11 @@
 ﻿using CineFinder.Application.DTOs.Usuario;
 using CineFinder.Application.Interfaces;
+using CineFinder.Application.Models;
 using CineFinder.Domain.Entities;
 using CineFinder.Domain.Interfaces;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -82,6 +85,35 @@ namespace CineFinder.Application.Services
         {
             await _usuarioRepository.DeleteAsync(id);
             return true;
+        }
+
+        public async Task<IEnumerable<UsuarioDto>> GetAllAsync()
+        {
+            var usuarios = await _usuarioRepository.GetAllAsync();
+            return usuarios.Select(MapToDto);
+        }
+
+        public async Task<PagedResult<UsuarioDto>> SearchAsync(UsuarioSearchParameters parameters)
+        {
+            var (usuarios, totalCount) = await _usuarioRepository.SearchWithFiltersAsync(
+                nome: parameters.Nome,
+                email: parameters.Email,
+                dataCriacaoInicio: parameters.DataCadastroInicio,
+                dataCriacaoFim: parameters.DataCadastroFim,
+                orderBy: parameters.OrderBy,
+                orderDescending: parameters.OrderDescending,
+                pageNumber: parameters.PageNumber,
+                pageSize: parameters.PageSize
+            );
+
+            var usuariosDto = usuarios.Select(MapToDto).ToList();
+
+            return new PagedResult<UsuarioDto>(
+                usuariosDto,
+                totalCount,
+                parameters.PageNumber,
+                parameters.PageSize
+            );
         }
 
         private string HashPassword(string password)

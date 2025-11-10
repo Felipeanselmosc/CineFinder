@@ -1,19 +1,18 @@
-cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Excluir.cshtml << 'EOF'
 @model CineFinder.ViewModels.AvaliacaoViewModel
 
 @{
-    ViewData["Title"] = "Excluir Avaliação";
+    ViewData["Title"] = "Excluir AvaliaÃ§Ã£o";
 }
 
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card card-custom border-danger">
             <div class="card-header bg-danger text-white">
-                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar ExclusÃ£o</h3>
             </div>
             <div class="card-body">
                 <div class="alert alert-warning">
-                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir esta avaliação?
+                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir esta avaliaÃ§Ã£o?
                 </div>
 
                 <div class="mb-4">
@@ -22,92 +21,26 @@ cat > /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Excluir.cshtm
                 </div>
 
                 <div class="mb-4">
-                    <h5>Avaliação</h5>
+                    <h5>AvaliaÃ§Ã£o</h5>
                     <div class="mb-2">
                         @for (int i = 0; i < Model.Nota; i++)
                         {
-                        <i class="fas fa-star text-warning fs-4"></i>
+                            <i class="fas fa-star text-warning fs-4"></i>
                         }
                         @for (int i = Model.Nota; i < 5; i++)
                         {
-                        <i class="far fa-star text-warning fs-4"></i>
+                            <i class="far fa-star text-warning fs-4"></i>
                         }
                     </div>
                     @if (!string.IsNullOrEmpty(Model.Comentario))
                     {
-                    <p>@Model.Comentario</p>
+                        <p>@Model.Comentario</p>
                     }
                 </div>
 
                 <div class="mb-3">
                     <small class="text-muted">
-                        Avaliado por: @Model.NomeUsuario •
-                        Data: @Model.DataAvaliacao.ToString("dd/MM/yyyy HH:mm")
-                    </small>
-                </div>
-
-                <form asp-action="Excluir" method="post">
-                    <input type="hidden" asp-for="Id" />
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Sim, Excluir
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-EOF
-cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Avaliacoes/Excluir.cshtml
-Saída
-
-@model CineFinder.ViewModels.AvaliacaoViewModel
-
-@{
-    ViewData["Title"] = "Excluir Avaliação";
-}
-
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card card-custom border-danger">
-            <div class="card-header bg-danger text-white">
-                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir esta avaliação?
-                </div>
-
-                <div class="mb-4">
-                    <h5>Filme</h5>
-                    <p class="lead">@Model.TituloFilme</p>
-                </div>
-
-                <div class="mb-4">
-                    <h5>Avaliação</h5>
-                    <div class="mb-2">
-                        @for (int i = 0; i < Model.Nota; i++)
-                        {
-                        <i class="fas fa-star text-warning fs-4"></i>
-                        }
-                        @for (int i = Model.Nota; i < 5; i++)
-                        {
-                        <i class="far fa-star text-warning fs-4"></i>
-                        }
-                    </div>
-                    @if (!string.IsNullOrEmpty(Model.Comentario))
-                    {
-                    <p>@Model.Comentario</p>
-                    }
-                </div>
-
-                <div class="mb-3">
-                    <small class="text-muted">
-                        Avaliado por: @Model.NomeUsuario •
+                        Avaliado por: @Model.NomeUsuario em
                         Data: @Model.DataAvaliacao.ToString("dd/MM/yyyy HH:mm")
                     </small>
                 </div>

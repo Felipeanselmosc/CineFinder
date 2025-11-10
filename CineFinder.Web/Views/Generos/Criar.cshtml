@@ -1,14 +1,14 @@
 @model CineFinder.ViewModels.GeneroCreateViewModel
 
 @{
-    ViewData["Title"] = "Novo Gênero";
+    ViewData["Title"] = "Novo GÃªnero";
 }
 
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card card-custom">
             <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-plus-circle"></i> Adicionar Novo Gênero</h3>
+                <h3 class="mb-0"><i class="fas fa-plus-circle"></i> Adicionar Novo GÃªnero</h3>
             </div>
             <div class="card-body">
                 <form asp-action="Criar" method="post">
@@ -16,13 +16,13 @@
 
                     <div class="mb-3">
                         <label asp-for="Nome" class="form-label"></label>
-                        <input asp-for="Nome" class="form-control" placeholder="Ex: Ação, Drama, Comédia..." />
+                        <input asp-for="Nome" class="form-control" placeholder="Ex: AÃ§Ã£o, Drama, ComÃ©dia..." />
                         <span asp-validation-for="Nome" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Descricao" class="form-label"></label>
-                        <textarea asp-for="Descricao" class="form-control" rows="3" placeholder="Descreva o gênero..."></textarea>
+                        <textarea asp-for="Descricao" class="form-control" rows="3" placeholder="Descreva o gÃªnero..."></textarea>
                         <span asp-validation-for="Descricao" class="text-danger"></span>
                     </div>
 
@@ -30,63 +30,7 @@
                         <label asp-for="TmdbGeneroId" class="form-label"></label>
                         <input asp-for="TmdbGeneroId" class="form-control" type="number" placeholder="28, 35, 18..." />
                         <span asp-validation-for="TmdbGeneroId" class="text-danger"></span>
-                        <small class="form-text text-muted">ID do gênero na base TMDB</small>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a asp-action="Index" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-save"></i> Salvar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
-EOF
-cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Generos/Criar.cshtml
-Saída
-
-@model CineFinder.ViewModels.GeneroCreateViewModel
-
-@{
-    ViewData["Title"] = "Novo Gênero";
-}
-
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card card-custom">
-            <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-plus-circle"></i> Adicionar Novo Gênero</h3>
-            </div>
-            <div class="card-body">
-                <form asp-action="Criar" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                    <div class="mb-3">
-                        <label asp-for="Nome" class="form-label"></label>
-                        <input asp-for="Nome" class="form-control" placeholder="Ex: Ação, Drama, Comédia..." />
-                        <span asp-validation-for="Nome" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Descricao" class="form-label"></label>
-                        <textarea asp-for="Descricao" class="form-control" rows="3" placeholder="Descreva o gênero..."></textarea>
-                        <span asp-validation-for="Descricao" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="TmdbGeneroId" class="form-label"></label>
-                        <input asp-for="TmdbGeneroId" class="form-control" type="number" placeholder="28, 35, 18..." />
-                        <span asp-validation-for="TmdbGeneroId" class="text-danger"></span>
-                        <small class="form-text text-muted">ID do gênero na base TMDB</small>
+                        <small class="form-text text-muted">ID do gÃªnero na base TMDB</small>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">

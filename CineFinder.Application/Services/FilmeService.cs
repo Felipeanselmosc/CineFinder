@@ -3,7 +3,6 @@ using CineFinder.Application.Interfaces;
 using CineFinder.Application.Models;
 using CineFinder.Domain.Entities;
 using CineFinder.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,14 +60,14 @@ namespace CineFinder.Application.Services
                     Id = fg.Genero.Id,
                     Nome = fg.Genero.Nome
                 }).ToList() ?? new List<GeneroSimplificadoDto>(),
-                Avaliacoes = filme.Avaliacoes?.Select(a => new AvaliacaoSimplificadaDto
+                Avaliacoes = filme.Avaliacoes?.Select(a => new CineFinder.Application.DTOs.Avaliacao.AvaliacaoSimplificadaDto
                 {
                     Id = a.Id,
                     Nota = a.Nota,
                     Comentario = a.Comentario,
                     DataAvaliacao = a.DataAvaliacao,
                     NomeUsuario = a.Usuario?.Nome ?? "Usuário Anônimo"
-                }).ToList() ?? new List<AvaliacaoSimplificadaDto>(),
+                }).ToList() ?? new List<CineFinder.Application.DTOs.Avaliacao.AvaliacaoSimplificadaDto>(),
                 TotalAvaliacoes = filme.Avaliacoes?.Count ?? 0
             };
         }

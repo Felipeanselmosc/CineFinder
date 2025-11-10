@@ -8,7 +8,7 @@
     <div class="col-md-8">
         <div class="card card-custom border-danger">
             <div class="card-header bg-danger text-white">
-                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar ExclusÃ£o</h3>
             </div>
             <div class="card-body">
                 <div class="alert alert-warning">
@@ -19,7 +19,7 @@
                     <h4>@Model.Nome</h4>
                     @if (!string.IsNullOrEmpty(Model.Descricao))
                     {
-                    <p class="text-muted">@Model.Descricao</p>
+                        <p class="text-muted">@Model.Descricao</p>
                     }
                     <div class="mt-3">
                         <span class="badge bg-secondary">
@@ -30,97 +30,25 @@
                         </span>
                         @if (Model.IsPublica)
                         {
-                        <span class="badge bg-success">
-                            <i class="fas fa-globe"></i> Pública
-                        </span>
+                            <span class="badge bg-success">
+                                <i class="fas fa-globe"></i> PÃºblica
+                            </span>
                         }
                         else
                         {
-                        <span class="badge bg-secondary">
-                            <i class="fas fa-lock"></i> Privada
-                        </span>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-lock"></i> Privada
+                            </span>
                         }
                     </div>
                 </div>
 
                 @if (Model.TotalFilmes > 0)
                 {
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Atenção:</strong> Esta lista contém @Model.TotalFilmes filme(s). Todos os itens serão removidos.
-                </div>
-                }
-
-                <form asp-action="Excluir" method="post">
-                    <input type="hidden" asp-for="Id" />
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                        <a asp-action="Detalhes" asp-route-id="@Model.Id" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Sim, Excluir Lista
-                        </button>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>AtenÃ§Ã£o:</strong> Esta lista contÃ©m @Model.TotalFilmes filme(s). Todos os itens serÃ£o removidos.
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-EOF
-cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Listas/Excluir.cshtml
-Saída
-
-@model CineFinder.ViewModels.ListaViewModel
-
-@{
-    ViewData["Title"] = "Excluir Lista";
-}
-
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card card-custom border-danger">
-            <div class="card-header bg-danger text-white">
-                <h3 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-info-circle"></i> Tem certeza que deseja excluir esta lista?
-                </div>
-
-                <div class="mb-4">
-                    <h4>@Model.Nome</h4>
-                    @if (!string.IsNullOrEmpty(Model.Descricao))
-                    {
-                    <p class="text-muted">@Model.Descricao</p>
-                    }
-                    <div class="mt-3">
-                        <span class="badge bg-secondary">
-                            <i class="fas fa-user"></i> @Model.NomeUsuario
-                        </span>
-                        <span class="badge bg-info">
-                            <i class="fas fa-film"></i> @Model.TotalFilmes filmes
-                        </span>
-                        @if (Model.IsPublica)
-                        {
-                        <span class="badge bg-success">
-                            <i class="fas fa-globe"></i> Pública
-                        </span>
-                        }
-                        else
-                        {
-                        <span class="badge bg-secondary">
-                            <i class="fas fa-lock"></i> Privada
-                        </span>
-                        }
-                    </div>
-                </div>
-
-                @if (Model.TotalFilmes > 0)
-                {
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Atenção:</strong> Esta lista contém @Model.TotalFilmes filme(s). Todos os itens serão removidos.
-                </div>
                 }
 
                 <form asp-action="Excluir" method="post">

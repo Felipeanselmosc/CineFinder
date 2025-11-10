@@ -9,6 +9,7 @@ namespace CineFinder.Application.Interfaces
     {
         Task<ListaDto> GetByIdAsync(Guid id);
         Task<ListaDetalhadaDto> GetDetalhadaAsync(Guid id);
+        Task<IEnumerable<ListaDto>> GetAllAsync();
         Task<IEnumerable<ListaDto>> GetByUsuarioAsync(Guid usuarioId);
         Task<IEnumerable<ListaDto>> GetPublicasAsync();
         Task<ListaDto> CreateAsync(Guid usuarioId, CreateListaDto dto);

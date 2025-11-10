@@ -7,6 +7,7 @@ using CineFinder.Application.DTOs.Usuario;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace CineFinder.Web.Controllers
 {
@@ -49,7 +50,7 @@ namespace CineFinder.Web.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Erro ao carregar listas: {ex.Message}";
-                return View(new System.Collections.Generic.List<ListaViewModel>());
+                return View(new List<ListaViewModel>());
             }
         }
 
@@ -78,7 +79,7 @@ namespace CineFinder.Web.Controllers
                         DataLancamento = f.DataLancamento,
                         NotaMedia = f.NotaMedia,
                         Duracao = f.Duracao
-                    }).ToList() ?? new System.Collections.Generic.List<FilmeViewModel>()
+                    }).ToList() ?? new List<FilmeViewModel>()
                 };
 
                 return View(lista);
@@ -109,15 +110,15 @@ namespace CineFinder.Web.Controllers
             {
                 try
                 {
-                    // TODO: Obter usuário logado. Por enquanto, usando um ID fixo para demonstração
+                    // TODO: Obter usuário logado. Por enquanto, usando um ID fixo/temporário
                     var usuarioId = Guid.NewGuid(); // Substituir pela lógica de autenticação real
 
                     var listaDto = new CreateListaDto
                     {
                         Nome = model.Nome,
                         Descricao = model.Descricao,
-                        IsPublica = model.IsPublica,
-                        UsuarioId = usuarioId
+                        IsPublica = model.IsPublica
+                        // UsuarioId NÃO existe no DTO, o usuarioId é passado separado
                     };
 
                     var resultado = await _listaService.CreateAsync(usuarioId, listaDto);
@@ -180,7 +181,7 @@ namespace CineFinder.Web.Controllers
 
                     var listaDto = new UpdateListaDto
                     {
-                        Id = id,
+                        // Id não é necessário no DTO, id já vai como parâmetro
                         Nome = model.Nome,
                         Descricao = model.Descricao,
                         IsPublica = model.IsPublica
@@ -309,7 +310,7 @@ namespace CineFinder.Web.Controllers
 
                 var dto = new AdicionarFilmeListaDto { FilmeId = filmeId };
                 await _listaService.AdicionarFilmeAsync(listaId, usuarioId, dto);
-                
+
                 TempData["SuccessMessage"] = "Filme adicionado à lista com sucesso!";
             }
             catch (Exception ex)

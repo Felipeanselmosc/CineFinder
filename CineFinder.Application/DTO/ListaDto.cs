@@ -39,9 +39,6 @@ namespace CineFinder.Application.DTOs.Lista
         public string Descricao { get; set; }
 
         public bool IsPublica { get; set; } = true;
-
-        [Required(ErrorMessage = "O ID do usuário é obrigatório")]
-        public Guid UsuarioId { get; set; }
     }
 
     /// <summary>
@@ -49,7 +46,7 @@ namespace CineFinder.Application.DTOs.Lista
     /// </summary>
     public class UpdateListaDto
     {
-        [Required(ErrorMessage = "O ID é obrigatório")]
+        [Required(ErrorMessage = "O ID da lista é obrigatório")]
         public Guid Id { get; set; }
 
         [Required(ErrorMessage = "O nome é obrigatório")]
@@ -79,6 +76,8 @@ namespace CineFinder.Application.DTOs.Lista
         public Guid Id { get; set; }
         public string Nome { get; set; }
         public string Email { get; set; }
+
+        public bool IsPublica { get; set; }
     }
 
     /// <summary>
@@ -88,6 +87,10 @@ namespace CineFinder.Application.DTOs.Lista
     {
         public Guid Id { get; set; }
         public string Titulo { get; set; }
+
+        // Nova propriedade para usar na view
+        public string Descricao { get; set; }
+
         public string PosterUrl { get; set; }
         public DateTime? DataLancamento { get; set; }
         public decimal? NotaMedia { get; set; }

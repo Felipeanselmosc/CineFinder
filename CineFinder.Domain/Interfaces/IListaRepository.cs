@@ -9,8 +9,11 @@ namespace CineFinder.Domain.Interfaces
     {
         Task<IEnumerable<Lista>> GetByUsuarioIdAsync(Guid usuarioId);
         Task<Lista?> GetWithFilmesAsync(Guid listaId);
-        Task<IEnumerable<Lista>> GetListasPublicasAsync();
         Task AdicionarFilmeAsync(Guid listaId, Guid filmeId);
         Task RemoverFilmeAsync(Guid listaId, Guid filmeId);
+
+        // Métodos adicionados
+        Task<IEnumerable<Lista>> GetAllAsync();
+        Task<IEnumerable<Lista>> GetPublicasAsync();
     }
 }

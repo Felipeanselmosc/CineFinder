@@ -1,14 +1,14 @@
 @model CineFinder.ViewModels.UsuarioEditViewModel
 
 @{
-    ViewData["Title"] = "Editar Usuário";
+    ViewData["Title"] = "Editar UsuÃ¡rio";
 }
 
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card card-custom">
             <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-user-edit"></i> Editar Usuário</h3>
+                <h3 class="mb-0"><i class="fas fa-user-edit"></i> Editar UsuÃ¡rio</h3>
             </div>
             <div class="card-body">
                 <form asp-action="Editar" method="post">
@@ -37,62 +37,7 @@
                             <i class="fas fa-times"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-save"></i> Salvar Alterações
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
-EOF
-cat /mnt/user-data/outputs/.NETs/CineFinder.Web/Views/Usuarios/Editar.cshtml
-Saída
-
-@model CineFinder.ViewModels.UsuarioEditViewModel
-
-@{
-    ViewData["Title"] = "Editar Usuário";
-}
-
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card card-custom">
-            <div class="card-header">
-                <h3 class="mb-0"><i class="fas fa-user-edit"></i> Editar Usuário</h3>
-            </div>
-            <div class="card-body">
-                <form asp-action="Editar" method="post">
-                    <input type="hidden" asp-for="Id" />
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                    <div class="mb-3">
-                        <label asp-for="Nome" class="form-label"></label>
-                        <input asp-for="Nome" class="form-control" />
-                        <span asp-validation-for="Nome" class="text-danger"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" type="email" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i>
-                        Para alterar a senha, entre em contato com o administrador.
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a asp-action="Detalhes" asp-route-id="@Model.Id" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-save"></i> Salvar Alterações
+                            <i class="fas fa-save"></i> Salvar AlteraÃ§Ãµes
                         </button>
                     </div>
                 </form>
