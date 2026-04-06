@@ -1,0 +1,10 @@
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\bin\Debug\net8.0\CineFinder.Domain.deps.json
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\bin\Debug\net8.0\CineFinder.Domain.dll
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\bin\Debug\net8.0\CineFinder.Domain.pdb
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\CineFinder.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\CineFinder.Domain.csproj.CoreCompileInputs.cache
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\CineFinder.Domain.sourcelink.json
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\CineFinder.Domain.dll
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\refint\CineFinder.Domain.dll
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\CineFinder.Domain.pdb
+C:\Users\msmsc\source\repos\Felipeanselmosc\CineFinder\CineFinder.Domain\obj\Debug\net8.0\ref\CineFinder.Domain.dll
