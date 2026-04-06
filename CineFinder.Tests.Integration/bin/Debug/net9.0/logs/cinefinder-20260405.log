@@ -1,7 +1,0 @@
-2026-04-05 20:03:54.208 -03:00 [INF] Iniciando CineFinder API...
-2026-04-05 20:03:56.516 -03:00 [INF] CineFinder API iniciada com sucesso.
-2026-04-05 20:03:56.993 -03:00 [WRN] Failed to determine the https port for redirect.
-2026-04-05 20:03:57.016 -03:00 [INF] HTTP POST /api/filmes responded 404 in 25.9827 ms
-2026-04-05 20:03:57.220 -03:00 [INF] HTTP DELETE /api/filmes/bfbd655f-5156-4631-9dba-84defa217c30 responded 404 in 0.5479 ms
-2026-04-05 20:03:57.237 -03:00 [INF] HTTP GET /api/filmes responded 404 in 0.3173 ms
-2026-04-05 20:03:57.247 -03:00 [INF] HTTP GET /api/filmes/2ba56e06-49a0-457a-b604-c0f87a7e51f5 responded 404 in 0.0652 ms
